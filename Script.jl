@@ -49,7 +49,7 @@ function define_sets!(m::Model, data::Dict, ts::DataFrame)
        ID_E = m.ext[:sets][:ID_E] = push!(ID_E,string(idtype_E,"_$(i)"))
     end
 
-    #Battery energy storage systems
+    #batteries energy storage systems
       ID_BESS = Array{Union{Nothing,String}}(nothing,0)
       for i in 1:data["BESS"]["NumberOfUnits"]
          ID_BESS = m.ext[:sets][:ID_BESS] = push!(ID_BESS,string("BESS","_$(i)"))
@@ -85,6 +85,14 @@ function process_parameters!(m::Model, data::Dict)
    #create parameters dictionary
    m.ext[:parameters] = Dict()
 
+   #System parameters
+   d=data
+   m.ext[:parameters][:rocofmax]=data["rocofmax"]
+   m.ext[:parameters][:hydrogenCost]=data["hydrogenCost"]
+   m.ext[:parameters][:FO]=data["FO"]
+   m.ext[:parameters][:deltaf]=data["deltaf"]
+
+
    #parameters of dispatchable generators per unit
    d = data["dispatchableGenerators"]
 
@@ -93,30 +101,35 @@ function process_parameters!(m::Model, data::Dict)
    m.ext[:parameters][:GmaxD]=Dict()
    m.ext[:parameters][:GminD]=Dict()
    m.ext[:parameters][:Dtg]=Dict()
+   m.ext[:parameters][:res_cost_g]=Dict()
    for i in ID
       if length(i)==6 
          m.ext[:parameters][:FCOST][i] =  d[SubString(i,1:length(i)-2)]["marginalcost"] #	β Marginal fuel cost
          m.ext[:parameters][:GmaxD][i] =  d[SubString(i,1:length(i)-2)]["maxPowerOutput"] 
          m.ext[:parameters][:GminD][i] =  d[SubString(i,1:length(i)-2)]["minStableOperatingPoint"]
          m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-2)]["deploymentTime"]
+         m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-2)]["reserveCosts"]
       else 
          if length(i)==7 
             m.ext[:parameters][:FCOST][i] = d[SubString(i,1:length(i)-3)]["marginalcost"] #	β Marginal fuel cost
             m.ext[:parameters][:GmaxD][i] =  d[SubString(i,1:length(i)-3)]["maxPowerOutput"]
             m.ext[:parameters][:GminD][i] =  d[SubString(i,1:length(i)-3)]["minStableOperatingPoint"]
             m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-3)]["deploymentTime"]
+            m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-3)]["reserveCosts"]
          else
             if length(i)==9
                m.ext[:parameters][:FCOST][i] = d[SubString(i,1:length(i)-2)]["marginalcost"] #	β Marginal fuel cost
                m.ext[:parameters][:GmaxD][i] =  d[SubString(i,1:length(i)-2)]["maxPowerOutput"]
                m.ext[:parameters][:GminD][i] =  d[SubString(i,1:length(i)-2)]["minStableOperatingPoint"]
                m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-2)]["deploymentTime"]
+               m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-2)]["reserveCosts"]
             else
                if length(i)==8
                m.ext[:parameters][:FCOST][i] = d[SubString(i,1:length(i)-4)]["marginalcost"] #	β Marginal fuel cost
                m.ext[:parameters][:GmaxD][i] =  d[SubString(i,1:length(i)-4)]["maxPowerOutput"]
                m.ext[:parameters][:GminD][i] =  d[SubString(i,1:length(i)-4)]["minStableOperatingPoint"]
-               m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-4)]["deploymentTime"]           
+               m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-4)]["deploymentTime"] 
+               m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-4)]["reserveCosts"]          
                else
                end         
             end
@@ -147,36 +160,43 @@ function process_parameters!(m::Model, data::Dict)
    m.ext[:parameters][:Ini_h_s] = Dict(i => d[SubString(i,1:length(i)-2)]["initial_hydrogen_storage"] for i in ID_E) #initial hydrogen storage in kg
    m.ext[:parameters][:End_h_s] = Dict(i => d[SubString(i,1:length(i)-2)]["final_hydrogen_storage"] for i in ID_E) #final hydrogen storage in kg
    m.ext[:parameters][:Dte] = Dict(i => d[SubString(i,1:length(i)-2)]["deploymentTime"] for i in ID_E) #final hydrogen storage in kg
+   m.ext[:parameters][:res_cost_e]= Dict(i => d[SubString(i,1:length(i)-2)]["reserveCosts"] for i in ID_E) #final hydrogen storage in kg
 
 
 
+   
+
+   #Parameter BESS
    d = data
-
-   #Parameter Fuel cost
-
    m.ext[:parameters][:PBmax]=Dict()
    m.ext[:parameters][:EBmax]=Dict()
+   m.ext[:parameters][:DOD_max]=Dict()
    m.ext[:parameters][:Beff]=Dict()
    m.ext[:parameters][:Ini_e_b]=Dict()
    m.ext[:parameters][:End_e_b]=Dict()
    m.ext[:parameters][:Dtb]=Dict()
-
+   m.ext[:parameters][:res_cost_b]=Dict()
+   
    for i in ID_BESS
       if length(i)==6 
          m.ext[:parameters][:PBmax][i] =  d[SubString(i,1:length(i)-2)]["Pmax"]
          m.ext[:parameters][:EBmax][i] =  d[SubString(i,1:length(i)-2)]["Emax"]
+         m.ext[:parameters][:DOD_max][i] =  d[SubString(i,1:length(i)-2)]["DODmax"]
          m.ext[:parameters][:Beff][i] =  d[SubString(i,1:length(i)-2)]["eff"]
          m.ext[:parameters][:Ini_e_b][i] =  d[SubString(i,1:length(i)-2)]["Einit"]
          m.ext[:parameters][:End_e_b][i] =  d[SubString(i,1:length(i)-2)]["Efinal"]
          m.ext[:parameters][:Dtb][i] =  d[SubString(i,1:length(i)-2)]["deploymentTime"]
+         m.ext[:parameters][:res_cost_b][i] =  d[SubString(i,1:length(i)-2)]["reserveCosts"]
       else 
          if length(i)==7 
          m.ext[:parameters][:PBmax][i] =  d[SubString(i,1:length(i)-3)]["Pmax"]
          m.ext[:parameters][:EBmax][i] =  d[SubString(i,1:length(i)-3)]["Emax"]
+         m.ext[:parameters][:DOD_max][i] =  d[SubString(i,1:length(i)-3)]["DODmax"]
          m.ext[:parameters][:Beff][i] =  d[SubString(i,1:length(i)-3)]["eff"]
          m.ext[:parameters][:Ini_e_b][i] =  d[SubString(i,1:length(i)-3)]["Einit"]
          m.ext[:parameters][:End_e_b][i] =  d[SubString(i,1:length(i)-3)]["Efinal"]
          m.ext[:parameters][:Dtb][i] =  d[SubString(i,1:length(i)-3)]["deploymentTime"]
+         m.ext[:parameters][:res_cost_b][i] =  d[SubString(i,1:length(i)-3)]["reserveCosts"]
          else
             
          end
@@ -190,14 +210,13 @@ function process_parameters!(m::Model, data::Dict)
    converted_dict_EBmax = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:EBmax])
    m.ext[:parameters][:EBmax] = converted_dict_EBmax
 
-
    converted_dict_Ini_e_b = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:Ini_e_b])
    m.ext[:parameters][:Ini_e_b] = converted_dict_Ini_e_b
 
    converted_dict_End_e_b = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:End_e_b])
    m.ext[:parameters][:End_e_b] = converted_dict_End_e_b
 
-   #OJO: no se convirtio el diccionario de eficiencia y de deployment time en Dict{String, Int64}
+   #OJO: no se convirtio el diccionario de eficiencia, deployment time, DOD and reserve costs en Dict{String, Int64}
    #return model
    return m
 end
@@ -206,6 +225,9 @@ end
 define_sets!(m, data, ts)
 process_time_series_data!(m, ts)
 process_parameters!(m, data)
+
+
+#beginning function solving ED
 
 # Create m.ext entries "variables", "expressions" and "constraints"
 m.ext[:variables] = Dict()
@@ -220,5 +242,198 @@ IV = m.ext[:sets][:IV]
 ID_E = m.ext[:sets][:ID_E]
 ID_BESS = m.ext[:sets][:ID_BESS]
 
-# Extract time series data
+# Extract time series data and convert them in PU values
 D= m.ext[:timeseries][:D]
+Pbase=maximum(D) 
+D= m.ext[:timeseries][:D]/Pbase
+
+#Extract paremeters of the system   m.ext[:parameters][:rocofmax]=data["rocofmax"]
+rocofmax = m.ext[:parameters][:rocofmax]
+hydrogenCost = m.ext[:parameters][:hydrogenCost]
+FO = m.ext[:parameters][:FO]
+deltaf = m.ext[:parameters][:deltaf]
+
+# Extract parameters Generators
+CostFuel=m.ext[:parameters][:FCOST]
+res_cost_g=m.ext[:parameters][:res_cost_g]
+
+GmaxD=m.ext[:parameters][:GmaxD]
+GmaxD=Dict(key => value / Pbase for (key, value) in GmaxD)
+
+GminD=m.ext[:parameters][:GminD]
+GminD =Dict(key => value / Pbase for (key, value) in GminD)
+
+Dtg=m.ext[:parameters][:Dtg]
+
+
+
+ #Define Mbase
+ Max_h_s = m.ext[:parameters][:Max_h_s]
+ Mbase=maximum( Max_h_s)[2]
+ Max_h_s =Dict(key => value /Mbase  for (key, value) in  Max_h_s)
+
+
+#Extra parameters Electrolyzer
+
+ PEmax = m.ext[:parameters][:PEmax]
+ PEmax=Dict(key => value / Pbase for (key, value) in PEmax)
+
+ PEmin = m.ext[:parameters][:PEmin]
+ PEmin = Dict(key=> value / Pbase for(key,value) in PEmin)
+
+ Eeff = m.ext[:parameters][:Eeff]
+ Eeff =Dict(key => value*Mbase/Pbase for (key, value) in Eeff)
+
+ Eload_factor = m.ext[:parameters][:Eload_factor]
+
+ Max_h_f = m.ext[:parameters][:Max_h_f]
+ Max_h_f = Dict(key => value /Mbase  for (key, value) in Max_h_f)
+
+ Min_h_s = m.ext[:parameters][:Min_h_s]
+ Min_h_s =Dict(key => value /Mbase  for (key, value) in  Min_h_s)
+
+
+ Ini_h_s = m.ext[:parameters][:Ini_h_s]
+ Ini_h_s =Dict(key => value /Mbase  for (key, value) in Ini_h_s)
+
+
+ End_h_s = m.ext[:parameters][:End_h_s]
+ End_h_s =Dict(key => value /Mbase  for (key, value) in End_h_s)
+
+
+ Dte = m.ext[:parameters][:Dte]
+ res_cost_e= m.ext[:parameters][:res_cost_e]
+
+ 
+ 
+#Extra parameteres BESS
+
+PBmax = m.ext[:parameters][:PBmax]
+PBmax=Dict(key => value /Pbase  for (key, value) in PBmax)
+
+EBmax = m.ext[:parameters][:EBmax]
+EBmax =Dict(key => value /Pbase  for (key, value) in EBmax)
+
+DOD_max = m.ext[:parameters][:DOD_max]
+Beff = m.ext[:parameters][:Beff]
+Ini_e_b = m.ext[:parameters][:Ini_e_b]
+Ini_e_b =Dict(key => value /Pbase  for (key, value) in Ini_e_b)
+
+End_e_b = m.ext[:parameters][:End_e_b]
+End_e_b =Dict(key => value /Pbase  for (key, value) in End_e_b)
+
+Dtb = m.ext[:parameters][:Dtb]
+res_cost_b = m.ext[:parameters][:res_cost_b]
+
+# create variables (g is already created for you, don't change this)
+g = m.ext[:variables][:g] = @variable(m, [i=ID,j=J],lower_bound=GminD[i], base_name="generation") #Power generation generators
+rg = m.ext[:variables][:rg] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="rg") #Reserve provided by generators
+rb = m.ext[:variables][:rb] = @variable(m, [i=ID_BESS,j=J],base_name="rb") #Reserve provided by batteries
+re = m.ext[:variables][:re] = @variable(m, [i=ID_E,j=J],lower_bound=0, base_name="re") #REserve provided by electrolyzers
+pl = m.ext[:variables][:pl] = @variable(m, [j=J],base_name="pl") #loss of generation
+pb = m.ext[:variables][:pb] = @variable(m, [i=ID_BESS,j=J],lower_bound=-PBmax[i],upper_bound=PBmax[i], base_name="pb") #Power consumption of the batteries
+eb = m.ext[:variables][:] = @variable(m, [i=ID_BESS,j=J], lower_bound= EBmax[i]*(1-DOD_max[i]), upper_bound=EBmax[i] , base_name="eb") #Energy bounds of the batteries
+hfe= m.ext[:variables][:hfe] = @variable(m, [i=ID_E,j=J],lower_bound=0, upper_bound= Max_h_f[i], base_name="hfe") #Hydrogen flow limit of the hydrogen produced by electrolyzers
+hfg = m.ext[:variables][:] = @variable(m, [i=ID_E,j=J],lower_bound=-Max_h_f[i],upper_bound= Max_h_f[i],base_name="hfg") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
+hfs = m.ext[:variables][:] = @variable(m, [i=ID_E,j=J],upper_bound= Max_h_f[i],base_name="hfs") #Hydrogen flow limit of the hydrogen flowing throw the hydrogen storage
+pe = m.ext[:variables][:] = @variable(m,  [i=ID_E,j=J],lower_bound= PEmin[i], upper_bound=PEmax[i], base_name="pe") #Power consumption electrolyzer
+hss = m.ext[:variables][:] = @variable(m, [i=ID_E,j=J],lower_bound=  Min_h_s[i], upper_bound= Max_h_s[i], base_name="hss") #hydrogen storage limit
+
+
+
+#create affine expressions
+
+g_costs=m.ext[:expressions][:g_costs] = @expression(m, [i=ID,j=J],g[i,j]*CostFuel[i]*Pbase
+)
+rg_costs=m.ext[:expressions][:rg_costs] = @expression(m, [i=ID,j=J],rg[i,j]*res_cost_g[i]*Pbase
+   )
+rb_costs=m.ext[:expressions][:rb_costs] = @expression(m, [i=ID_BESS,j=J],rb[i,j]*res_cost_b[i]*Pbase
+   )
+re_costs=m.ext[:expressions][:re_costs] = @expression(m, [i=ID_E,j=J],re[i,j]*res_cost_e[i]*Pbase
+   )
+h_costs=m.ext[:expressions][:h_costs] = @expression(m, [i=ID_E,j=J],hfg[i,j]*hydrogenCost*Mbase
+   )
+
+#Create objective function
+
+obj= m.ext[:objective] = @objective(m,Min, sum(g_costs)+sum(rg_costs)+sum(rb_costs)+sum(re_costs)+sum(h_costs)
+)
+
+#Constraints (market clearing constraint)
+con1=m.ext[:constraints][:con1] = @constraint(m, [j=J],
+sum(g[i,j] for i in ID) +sum(pb[i,j] for i in ID_BESS) == D[j]+sum(pe[i,j] for i in ID_E)
+)
+
+#Constraint upper bound generators power
+con2=m.ext[:constraints][:con2] = @constraint(m, [i=ID,j=J],
+g[i,j]+rg[i,j]<=GmaxD[i]
+)
+
+#Constraint lost of generation
+
+con3=m.ext[:constraints][:con3] = @constraint(m, [i=ID,j=J],
+pl[j]>=g[i,j]
+)
+
+#Constraint upper bound reserve provided by BESS
+con4=m.ext[:constraints][:con4] = @constraint(m, [i=ID_BESS,j=J],
+rb[i,j]<=PBmax[i]-pb[i,j]
+)
+
+#Constraint upper bound reserve provided by Electrolyzer
+con5=m.ext[:constraints][:con5] = @constraint(m, [i=ID_E,j=J],
+re[i,j]<=pe[i,j]-PEmin[i]
+)
+
+#Constraint end energy value of the batteries
+con6=m.ext[:constraints][:con6] = @constraint(m, [i=ID_BESS,j=J[end]],
+End_e_b[i]==eb[i,j]-Beff[i]*pb[i,j]
+)
+
+
+#Constraint initial value energy of the batteries
+con7=m.ext[:constraints][:con7] = @constraint(m, [i=ID_BESS,j=J[1]],
+eb[i,j+1]==Ini_e_b-Beff[i]*pb[i,j]
+
+)
+
+#Constraint charging-discharging batteries
+con8=m.ext[:constraints][:con8] = @constraint(m, [i=ID_BESS,j=[2:end-1]],
+eb[i,j+1]==eb[i,j]-Beff[i]*pb[i,j]
+)
+
+##Constraint Electrolyzer
+#Constraint  hydrogen production electrolyzer
+con9=m.ext[:constraints][:con9] = @constraint(m, [i=ID_E,j=J],
+hfe[i,j]==pe[i,j]/Eeff[i]
+)
+
+con10=m.ext[:constraints][:con10] = @constraint(m, [i=ID_E,j=J],
+hfe[i,j]==hfg[i,j]+hfs[i,j]+Eload_factorll
+
+)
+
+#Colocar la demanda de hidrogeno en la ecuacion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -2,6 +2,16 @@
 valueOfLostLoad: 1000 # EUR / MWh
 CO2Price: 25 # EUR / ton
 timeStepLength: 1 # hrs
+hydrogenCost: 4 # EUR/kg
+deltaf: 1 # Hz
+FO: 50 # Hz
+rocofmax: 1.4 # beteween 0.25hz/s and 2.5 hz/s https://www.sciencedirect.com/science/article/pii/S0360544220308835
+
+
+
+
+
+
 
 dispatchableGenerators:
  Nuclear:
@@ -17,6 +27,10 @@ dispatchableGenerators:
   innertiaCostant: 5 # s
   maxFrdelivarable: 0 # 
   deploymentTime: 15 # s
+  reserveCosts: 36 #Fast frequency reserve cost EUR,h/MW
+  
+  
+  
 # MWh of primary fuel per MW of installed capacity
 
  CCGT:
@@ -31,6 +45,7 @@ dispatchableGenerators:
   innertiaCostant: 4 # s
   maxFrdelivarable: 50 # 
   deploymentTime: 15 # s
+  reserveCosts: 36 #Fast frequency reserve cost EUR,h/MW
 
 
  OCGT:
@@ -46,6 +61,7 @@ dispatchableGenerators:
   innertiaCostant: 4 # s
   maxFrdelivarable: 20 # 
   deploymentTime: 15 # s
+  reserveCosts: 36 #Fast frequency reserve cost EUR,h/MW
 
 variableGenerators:
  Solar:
@@ -55,12 +71,14 @@ variableGenerators:
 
 BESS:
   NumberOfUnits: 80 # number of units
-  Pmax: 300 # MW -> ̅D = ̅C = Pmax
-  Emax: 700 # MWh -> ̅E
-  eff: 0.85 # Round-trip efficiency -> ηc = ηd = sqrt(eff)
+  Pmax: 300 # MW 
+  Emax: 700 # MWh 
+  DODmax: 0.793 # corresponds to considering DOD_max=0.9 + 0.207 which is the required energy to keep providing reserve during 15 minutes
+  eff: 0.85 # Efficiency
   Einit: 80 # MWh, starting value state of charge -> e_0
   Efinal: 80 # MWh, starting value state of charge -> e_J
   deploymentTime: 0.2 # s
+  reserveCosts: 14.29 # Frequency containment reserve cost EUR,h/MW
 
 
 
@@ -77,6 +95,7 @@ Electrolyzer:
     initial_hydrogen_storage: 8275.86 # kg
     final_hydrogen_storage: 8275.86 # kg
     deploymentTime: 0.2 # s
+    reserveCosts: 14.29 # Frequency containment reserve cost EUR,h/MW
      
   E_200:
     installed_capacity: 200  # MW
@@ -90,6 +109,7 @@ Electrolyzer:
     initial_hydrogen_storage: 16551.72 # kg
     final_hydrogen_storage: 16551.72 # kg
     deploymentTime: 0.2 # s
+    reserveCosts: 14.29 # Frequency containment reserve cost EUR,h/MW
 
   E_500:
     installed_capacity: 500  # MW
@@ -103,6 +123,7 @@ Electrolyzer:
     initial_hydrogen_storage: 41379.31 # kg
     final_hydrogen_storage: 41379.31 # kg
     deploymentTime: 0.2 # s
+    reserveCosts: 14.29 # Frequency containment reserve cost EUR,h/MW
 
 
 
