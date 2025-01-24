@@ -3,7 +3,7 @@ valueOfLostLoad: 1000 # EUR / MWh
 CO2Price: 25 # EUR / ton
 timeStepLength: 1 # hrs
 hydrogenCost: 4 # EUR/kg
-deltaf: 1 # Hz
+deltaf: 0.8 # Hz
 FO: 50 # Hz
 rocofmax: 1.4 # beteween 0.25hz/s and 2.5 hz/s https://www.sciencedirect.com/science/article/pii/S0360544220308835
 
@@ -74,7 +74,8 @@ BESS:
   Pmax: 300 # MW 
   Emax: 700 # MWh 
   DODmax: 0.793 # corresponds to considering DOD_max=0.9 + 0.207 which is the required energy to keep providing reserve during 15 minutes
-  eff: 0.85 # Efficiency
+  effc: 0.85 # Charge Efficiency
+  effd: 0.9 # Discharge Efficiency
   Einit: 80 # MWh, starting value state of charge -> e_0
   Efinal: 80 # MWh, starting value state of charge -> e_J
   deploymentTime: 0.2 # s
@@ -96,6 +97,8 @@ Electrolyzer:
     final_hydrogen_storage: 8275.86 # kg
     deploymentTime: 0.2 # s
     reserveCosts: 14.29 # Frequency containment reserve cost EUR,h/MW
+    effc: 0.85 # Charge Efficiency
+    effd: 0.9 # Discharge Efficiency
      
   E_200:
     installed_capacity: 200  # MW
@@ -110,6 +113,8 @@ Electrolyzer:
     final_hydrogen_storage: 16551.72 # kg
     deploymentTime: 0.2 # s
     reserveCosts: 14.29 # Frequency containment reserve cost EUR,h/MW
+    effc: 0.85 # Charge Efficiency
+    effd: 0.9 # Discharge Efficiency
 
   E_500:
     installed_capacity: 500  # MW
@@ -124,6 +129,8 @@ Electrolyzer:
     final_hydrogen_storage: 41379.31 # kg
     deploymentTime: 0.2 # s
     reserveCosts: 14.29 # Frequency containment reserve cost EUR,h/MW
+    effc: 0.85 # Charge Efficiency
+    effd: 0.9 # Discharge Efficiency
 
 
 
