@@ -24,7 +24,20 @@ data_system_parameters = CSV.read("System_parameters.csv", DataFrame)
 ## Step 2: create model & pass data to model
 using JuMP
 using Ipopt
+
+function denseaxisarray_to_vector(dense_array)
+   vector = []
+   for k in keys(dense_array)
+       push!(vector, dense_array[k])
+   end
+   return vector
+end
+
 m = Model(optimizer_with_attributes(Ipopt.Optimizer))
+
+
+
+
 
 
 function define_sets!(m::Model, data::Dict, ts::DataFrame)
@@ -102,7 +115,7 @@ function process_parameters!(m::Model, data::Dict)
    m.ext[:parameters][:GminD]=Dict()
    m.ext[:parameters][:Dtg]=Dict()
    m.ext[:parameters][:res_cost_g]=Dict()
-   m.ext[:parameters][:inertia_Costant]=Dict()
+   m.ext[:parameters][:inertia_Constant]=Dict()
    for i in ID
       if length(i)==6 
          m.ext[:parameters][:FCOST][i] =  d[SubString(i,1:length(i)-2)]["marginalcost"] #	β Marginal fuel cost
@@ -110,7 +123,7 @@ function process_parameters!(m::Model, data::Dict)
          m.ext[:parameters][:GminD][i] =  d[SubString(i,1:length(i)-2)]["minStableOperatingPoint"]
          m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-2)]["deploymentTime"]
          m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-2)]["reserveCosts"]
-         m.ext[:parameters][:inertia_Costant][i]= d[SubString(i,1:length(i)-2)]["innertiaCostant"]
+         m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-2)]["innertiaCostant"]
       else 
          if length(i)==7 
             m.ext[:parameters][:FCOST][i] = d[SubString(i,1:length(i)-3)]["marginalcost"] #	β Marginal fuel cost
@@ -118,7 +131,7 @@ function process_parameters!(m::Model, data::Dict)
             m.ext[:parameters][:GminD][i] =  d[SubString(i,1:length(i)-3)]["minStableOperatingPoint"]
             m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-3)]["deploymentTime"]
             m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-3)]["reserveCosts"]
-            m.ext[:parameters][:inertia_Costant][i]= d[SubString(i,1:length(i)-3)]["innertiaCostant"]
+            m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-3)]["innertiaCostant"]
          else
             if length(i)==9
                m.ext[:parameters][:FCOST][i] = d[SubString(i,1:length(i)-2)]["marginalcost"] #	β Marginal fuel cost
@@ -126,7 +139,7 @@ function process_parameters!(m::Model, data::Dict)
                m.ext[:parameters][:GminD][i] =  d[SubString(i,1:length(i)-2)]["minStableOperatingPoint"]
                m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-2)]["deploymentTime"]
                m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-2)]["reserveCosts"]
-               m.ext[:parameters][:inertia_Costant][i]= d[SubString(i,1:length(i)-2)]["innertiaCostant"]
+               m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-2)]["innertiaCostant"]
             else
                if length(i)==8
                m.ext[:parameters][:FCOST][i] = d[SubString(i,1:length(i)-4)]["marginalcost"] #	β Marginal fuel cost
@@ -134,7 +147,7 @@ function process_parameters!(m::Model, data::Dict)
                m.ext[:parameters][:GminD][i] =  d[SubString(i,1:length(i)-4)]["minStableOperatingPoint"]
                m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-4)]["deploymentTime"] 
                m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-4)]["reserveCosts"]
-               m.ext[:parameters][:inertia_Costant][i]= d[SubString(i,1:length(i)-4)]["innertiaCostant"]          
+               m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-4)]["innertiaCostant"]          
                else
                end         
             end
@@ -152,8 +165,8 @@ function process_parameters!(m::Model, data::Dict)
    m.ext[:parameters][:Dtg] = converted_dict_Dtg
    converted_dict_res_cost_g = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:res_cost_g]) 
    m.ext[:parameters][:res_cost_g] = converted_dict_res_cost_g
-   converted_dict_inertia_Costant = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:inertia_Costant])
-   m.ext[:parameters][:inertia_Costant] = converted_dict_inertia_Costant
+   converted_dict_inertia_Constant = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:inertia_Constant])
+   m.ext[:parameters][:inertia_Constant] = converted_dict_inertia_Constant
 
    #Parameter variable generators
 
@@ -279,6 +292,8 @@ GminD=m.ext[:parameters][:GminD]
 GminD =Dict(key => value / Pbase for (key, value) in GminD)
 
 Dtg=m.ext[:parameters][:Dtg]
+
+inertia_Constant=m.ext[:parameters][:inertia_Constant]
 
 
 
@@ -458,11 +473,26 @@ con13=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[2:end-1]],
 hss[i,j+1]==hss[i,j]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i]
 )
 
-auxFCR=zeros(length(ID))
-con14- m.ext[:constraints][:con14] = @constraint(m, [i=ID_E,j=J],
-)
+
+
+
+
+con14= m.ext[:constraints][:con14] = @constraint(m, [i=1:length(ID),j=J], (sum(deleteat!(copy(denseaxisarray_to_vector(inertia_Constant)),i))/FO-sum(denseaxisarray_to_vector(re[:,j]))*0.2/(4*deltaf)-sum(denseaxisarray_to_vector(rb[:,j]))*0.2/(4*deltaf))*(sum(deleteat!(copy(denseaxisarray_to_vector(rg[:,j])),i))/15)>=(pl[j]-sum(denseaxisarray_to_vector(rb[:,j]))-sum(denseaxisarray_to_vector(re[:,j])))^2/(4*deltaf)
+) 
+
+
+
+
+
+
+
 #agregar la eficiencia de perdidas del hydrogen storage
 
+function remove_element(dense_array, key_to_remove)
+   filtered_keys = filter(k -> k != key_to_remove, keys(dense_array))
+   filtered_values = [dense_array[k] for k in filtered_keys]
+   return JuMP.Containers.DenseAxisArray(filtered_values, filtered_keys)
+end
 
 
 
