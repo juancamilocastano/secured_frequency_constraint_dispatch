@@ -2,7 +2,7 @@
 ## Secure economic dispatch of great britain power system with 24 GW of BESS and 5 GW of electrolyzers
 #Author: Juan Camilo Castano
 #Date: 2024-02-12
-
+#@time begin
 ## Step 0: Activate environment - ensure consistency accross computers
 using Pkg
 Pkg.activate(@__DIR__) # @__DIR__ = directory this script is in
@@ -12,6 +12,7 @@ Pkg.instantiate()
 using CSV
 using DataFrames
 using YAML
+using Plots
 
 
 data = YAML.load_file(joinpath(@__DIR__, "data.yaml"))
@@ -395,32 +396,32 @@ function build_model_interval_1!(m::Model)
 
    #Constraint upper bound generators power
    con2=m.ext[:constraints][:con2] = @constraint(m, [i=ID,j=J],
-   g[i,j]+rg[i,j]<=GmaxD[i]
+   g[i,j]+rg[i,j].<=GmaxD[i]
    )
 
    #Constraint lost of generation
 
    con3=m.ext[:constraints][:con3] = @constraint(m, [i=ID,j=J],
-   pl[j]>=g[i,j]
+   pl[j].>=g[i,j]
    )
 
    #Constraint upper bound reserve provided by BESS
    con4=m.ext[:constraints][:con4] = @constraint(m, [i=ID_BESS,j=J],
-   rb[i,j]<=PBmax[i]+pbc[i,j]-pbd[i,j]
+   rb[i,j].<=PBmax[i]+pbc[i,j]-pbd[i,j]
    )
 
    #Constraint upper bound reserve provided by Electrolyzer
-   con5=m.ext[:constraints][:con5] = @constraint(m, [i=ID_E,j=J],re[i,j]<=pe[i,j]-PEmin[i])
+   con5=m.ext[:constraints][:con5] = @constraint(m, [i=ID_E,j=J],re[i,j].<=pe[i,j]-PEmin[i])
 
    #Constraint end energy value of the batteries
-   con6=m.ext[:constraints][:con6] = @constraint(m, [i=ID_BESS,j=J[end]],End_e_b[i]==eb[i,j]+Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
+   con6=m.ext[:constraints][:con6] = @constraint(m, [i=ID_BESS,j=J[end]],End_e_b[i]-eb[i,j]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
 
 
    #Constraint initial value energy of the batteries
-   con7=m.ext[:constraints][:con7] = @constraint(m, [i=ID_BESS,j=J[1]],eb[i,j+1]==Ini_e_b[i]+Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
+   con7=m.ext[:constraints][:con7] = @constraint(m, [i=ID_BESS,j=J[1]],eb[i,j+1]-Ini_e_b[i]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
 
    #Constraint charging-discharging batteries
-   con8=m.ext[:constraints][:con8] = @constraint(m, [i=ID_BESS,j=J[2:end-1]],eb[i,j+1]==eb[i,j]+Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
+   con8=m.ext[:constraints][:con8] = @constraint(m, [i=ID_BESS,j=J[2:end-1]],eb[i,j+1]-eb[i,j]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
 
    ##Constraint Electrolyzer
    #Constraint  hydrogen production electrolyzer
@@ -428,7 +429,7 @@ function build_model_interval_1!(m::Model)
 
    #Mass hydrogen equation
    #The term Eload_factorl[i]*PEmax[i]/Eeff[i] correspond to the hydrogen demand
-   con10=m.ext[:constraints][:con10] = @constraint(m, [i=ID_E,j=J],hfe[i,j]+hfsc[i,j]-hfsd[i,j]==hfg[i,j]+Eload_factor[i]*PEmax[i]/Eeff[i])
+   con10=m.ext[:constraints][:con10] = @constraint(m, [i=ID_E,j=J],hfe[i,j]+hfsc[i,j]-hfsd[i,j]==hfg[i,j]+Eload_factor[i]*PEmax[i]/(Eeff[i]*Mbase/Pbase))
 
    #Hydrogen storage constraints
 
@@ -443,22 +444,49 @@ function build_model_interval_1!(m::Model)
    #Constraint charging-discharging of the hydrogen storage
    con13=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[2:end-1]],hss[i,j+1]==hss[i,j]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
 
+   #constraint ROCOF
+   con17=m.ext[:constraints][:con17] = @constraint(m, [i=ID,j=J], pl[j]*FO/(2*(sum(values(inertia_Constant))-inertia_Constant[i])).<=rocofmax)
+
 
    #Constraint maximum frequency variation
-   con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(values(inertia_Constant))-inertia_Constant[i])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j])-rg[i, j])/Dtg))>=pl[j]^2/(4*deltaf))
+   con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(values(inertia_Constant))-inertia_Constant[i])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j])-rg[i, j])/Dtg)).>=pl[j]^2/(4*deltaf))
 
    #constraints nadir occurrence time
 
-   con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j]>=0)
+   con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=0)
 
-   con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j]<= 0.0000001+sum(re[:, j])+sum(rb[:,j])*(Dte/Dtb)+(sum(rg[:, j])-rg[i, j])*Dte/Dtg)
-   #constraint ROCOF
-   con17=m.ext[:constraints][:con17] = @constraint(m, [i=ID,j=J], pl[j]*FO/(2*(sum(values(inertia_Constant))-inertia_Constant[i]))<=rocofmax)
+   con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<= 0.00000000000001+sum(re[:, j])+sum(rb[:,j])*(Dte/Dtb)+(sum(rg[:, j])-rg[i, j])*Dte/Dtg)
+
+   #=
+   #Restricciones intervalo II
+   #Constraint maximum frequency variation
+   con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(values(inertia_Constant))-inertia_Constant[i])/FO-sum(re[:,j])*Dte/(4*deltaf))*(sum(rb[:, j])/Dtb+(sum(rg[:, j])-rg[i, j])/Dtg).>=(pl[j]-sum(re[:, j]))^2/(4*deltaf))
+
+   #constraints nadir occurrence time
+
+   con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=sum(re[:, j])  + sum(rb[:, j])*Dte/Dtb + (sum(rg[:, j]) - rg[i, j]) * Dte / Dtg)
+
+   con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<=0.000000000000001 + sum(re[:, j]) + sum(rb[:, j]) + (sum(rg[:, j]) - rg[i, j]) * Dtb / Dtg)
+   
+
+ 
+   #Restricciones intervalo III
+
+   #Constraint maximum frequency variation
+   con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(values(inertia_Constant))-inertia_Constant[i])/FO-(sum(rb[:, j])*Dtb/(4*deltaf))-(sum(re[:, j])*Dte/(4*deltaf)))*((sum(rg[:, j])-rg[i, j])/Dtg).>=(pl[j]-sum(rb[:, j])-sum(re[:, j]))^2/(4*deltaf))
+
+   #constraints nadir occurrence time
+
+   con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])-rg[i, j])*Dtb/Dtg)
+
+   con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<=0.000001 + sum(rb[:,j])+sum(re[:,j])+sum(re[:,j])+(sum(rg[:, j])-rg[i, j]))
+   =#
 end
 
 
 function build_model_interval_2!(m::Model)
    #Extract paremeters of the system   m.ext[:parameters][:rocofmax]=data["rocofmax"]
+   build_model_interval_1!(m)
    FO = m.ext[:parameters][:FO]
    deltaf = m.ext[:parameters][:deltaf]
    inertia_Constant=m.ext[:parameters][:inertia_Constant]
@@ -477,7 +505,7 @@ function build_model_interval_2!(m::Model)
    rg = m.ext[:variables][:rg]
    pl = m.ext[:variables][:pl]
 
-   build_model_interval_1!(m)
+   
    for j in J
       for i in ID
          delete(m,m.ext[:constraints][:con14][i,j])
@@ -487,19 +515,20 @@ function build_model_interval_2!(m::Model)
    end
 
    #Constraint maximum frequency variation
-   con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(values(inertia_Constant))-inertia_Constant[i])/FO-sum(re[:,j])*Dte/(4*deltaf))*(sum(rb[:, j])/Dtb+(sum(rg[:, j])-rg[i, j])/Dtg)>=(pl[j]-sum(re[:, j]))^2/(4*deltaf))
+   con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(values(inertia_Constant))-inertia_Constant[i])/FO-sum(re[:,j])*Dte/(4*deltaf))*(sum(rb[:, j])/Dtb+(sum(rg[:, j])-rg[i, j])/Dtg).>=(pl[j]-sum(re[:, j]))^2/(4*deltaf))
 
    #constraints nadir occurrence time
 
-   con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j]>=sum(re[:, j])  + sum(rb[:, j])*Dte/Dtb + (sum(rg[:, j]) - rg[i, j]) * Dte / Dtg)
+   con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=sum(re[:, j])  + sum(rb[:, j])*Dte/Dtb + (sum(rg[:, j]) - rg[i, j]) * Dte / Dtg)
 
-   con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j]<=0.0000001 + sum(re[:, j]) + sum(rb[:, j]) + (sum(rg[:, j]) - rg[i, j]) * Dtb / Dtg)
+   con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<=0.000000000000001 + sum(re[:, j]) + sum(rb[:, j]) + (sum(rg[:, j]) - rg[i, j]) * Dtb / Dtg)
 
    return (m)
 end
 
 
 function build_model_interval_3!(m::Model)
+      build_model_interval_1!(m)
       #Extract paremeters of the system   m.ext[:parameters][:rocofmax]=data["rocofmax"]
       FO = m.ext[:parameters][:FO]
       deltaf = m.ext[:parameters][:deltaf]
@@ -519,7 +548,7 @@ function build_model_interval_3!(m::Model)
       rg = m.ext[:variables][:rg]
       pl = m.ext[:variables][:pl]
 
-      build_model_interval_1!(m)
+      
       for j in J
          for i in ID
             delete(m,m.ext[:constraints][:con14][i,j])
@@ -529,66 +558,136 @@ function build_model_interval_3!(m::Model)
       end
 
    #Constraint maximum frequency variation
-   con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(values(inertia_Constant))-inertia_Constant[i])/FO-(sum(rb[:, j])*Dtb/(4*deltaf))-(sum(re[:, j])*Dte/(4*deltaf)))*((sum(rg[:, j])-rg[i, j])/Dtg)>=(pl[j]-sum(rb[:, j])-sum(re[:, j]))^2/(4*deltaf))
+   con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(values(inertia_Constant))-inertia_Constant[i])/FO-(sum(rb[:, j])*Dtb/(4*deltaf))-(sum(re[:, j])*Dte/(4*deltaf)))*((sum(rg[:, j])-rg[i, j])/Dtg).>=(pl[j]-sum(rb[:, j])-sum(re[:, j]))^2/(4*deltaf))
 
    #constraints nadir occurrence time
 
-   con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j]>=sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])-rg[i, j])*Dtb/Dtg)
+   con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])-rg[i, j])*Dtb/Dtg)
 
-   con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j]<=0.000001 + sum(rb[:,j])+sum(re[:,j])+sum(re[:,j])+(sum(rg[:, j])-rg[i, j]))
+   con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<=0.000001 + sum(rb[:,j])+sum(re[:,j])+sum(re[:,j])+(sum(rg[:, j])-rg[i, j]))
    
    return (m)
 end
 
 build_model_interval_1!(m)
-optimize!(m)
 
-build_model_interval_2!(m)
-optimize!(m)
+open("output_1.txt", "w") do file
+   # Redirect stdout to the file within the block
+   redirect_stdout(file) do
+       optimize!(m)
+       opt_time = solve_time(m)
+   end
+end
 
 
-build_model_interval_3!(m)
-
-optimize!(m)
 
 
 #=
-g = value.(m.ext[:variables][:g])*Pbase
-rg= value.(m.ext[:variables][:rg])*Pbase
-re= value.(m.ext[:variables][:re])*Pbase
-rb= value.(m.ext[:variables][:rb])*Pbase
-pl= value.(m.ext[:variables][:pl])*Pbase
+
+build_model_interval_2!(m)
+#=
+open("output_2.txt", "w") do file
+   # Redirect stdout to the file within the block
+   redirect_stdout(file) do
+       optimize!(m)
+       opt_time = solve_time(m)
+   end
+end
 =#
 
 
 
 
+build_model_interval_3!(m)
+
+open("output_3.txt", "w") do file
+   # Redirect stdout to the file within the block
+   redirect_stdout(file) do
+       optimize!(m)
+       opt_time = solve_time(m)
+   end
+end
+=#
 
 
 
 
+Max_h_s = m.ext[:parameters][:Max_h_s]
+Mbase=maximum( Max_h_s)[2]
+D=m.ext[:timeseries][:D]
+Pbase=maximum(D)
+
+g = value.(m.ext[:variables][:g])*Pbase
+rg= value.(m.ext[:variables][:rg])*Pbase
+re= value.(m.ext[:variables][:re])*Pbase
+rb= value.(m.ext[:variables][:rb])*Pbase
+pl= value.(m.ext[:variables][:pl])*Pbase
+pbc= value.(m.ext[:variables][:pbc])*Pbase
+pbd= value.(m.ext[:variables][:pbd])*Pbase
+eb= value.(m.ext[:variables][:eb])*Pbase
+pe= value.(m.ext[:variables][:pe])*Pbase
+hfe= value.(m.ext[:variables][:hfe])*Mbase
+hfg= value.(m.ext[:variables][:hfg])*Mbase
+hfsc= value.(m.ext[:variables][:hfsc])*Mbase
+hfsd= value.(m.ext[:variables][:hfsd])*Mbase
+hss= value.(m.ext[:variables][:hss])*Mbase
 
 
+# Extract sets
+I = m.ext[:sets][:I]
+J = m.ext[:sets][:J]
+ID= m.ext[:sets][:ID]
+IV = m.ext[:sets][:IV]
+ID_E = m.ext[:sets][:ID_E]
+ID_BESS = m.ext[:sets][:ID_BESS]
+Ivec = [i for  i in I]
+Bvec = [i for  i in ID_BESS]
+
+gvec = [g[i,j] for  i in ID, j in J]
+rgvec = [rg[i,j] for  i in ID, j in J]
+revec = [re[i,j] for  i in ID_E, j in J]
+rbvec = [rb[i,j] for  i in ID_BESS, j in J]
+plvec = [pl[j] for j in J]
+pevec = [pe[i,j] for  i in ID_E, j in J]
+pbcvec = [pbc[i,j] for  i in ID_BESS, j in J]
+pbdvec = [pbd[i,j] for  i in ID_BESS, j in J]
+ebvec = [eb[i,j] for  i in ID_BESS, j in J]
+hfevec = [hfe[i,j] for  i in ID_E, j in J]
+hfgvec = [hfg[i,j] for  i in ID_E, j in J]
+hfscvec = [hfsc[i,j] for  i in ID_E, j in J]
+hfsdvec = [hfsd[i,j] for  i in ID_E, j in J]
+hssvec = [hss[i,j] for  i in ID_E, j in J]
+
+using StatsPlots
+p2 = groupedbar(transpose(gvec[:,:]),bar_position = :stack,label=permutedims(Ivec),legend=:outertopright);
+plot(p2, layout = (1,2), size=(2400, 1900))
+p3 = groupedbar(transpose(rgvec[:,:]),bar_position = :stack,label=permutedims(Bvec),legend=:outertopright);
+plot(p3, layout = (1,2), size=(2400, 1900))
+# Plot the vectors
+plot(hfevec[1,:], label = "hfevec", lw = 2)
+plot!(hfgvec[1,:], label = "hfgvec", lw = 2)
+plot!(hfscvec[1,:], label = "hfscvec", lw = 2)
+plot!(hfsdvec[1,:], label = "hfsdvec", lw = 2)
+plot!(hssvec[1,:], label = "hssvec", lw = 2)
+# Display the plot
+plot!()
 
 
+plot(hfscvec[1,:], label = "hfscvec", lw = 2)
+plot!(hfsdvec[1,:], label = "hfsdvec", lw = 2)
+plot!(hssvec[1,:], label = "hssvec", lw = 2)
+# Display the plot
+plot!()
 
+plot(hfscvec[1,:], label = "hfscvec", lw = 2)
+plot!(hfsdvec[1,:], label = "hfsdvec", lw = 2)
+plot!(hssvec[1,:], label = "hssvec", lw = 2)
+# Display the plot
+plot!()
 
+plot(pbcvec[1,:], label = "pbcvec", lw = 2)
+plot!(pbdvec[1,:], label = "pbdvec", lw = 2)
+plot!(ebvec[1,:], label = "ebvec", lw = 2)
+plot!()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#end
