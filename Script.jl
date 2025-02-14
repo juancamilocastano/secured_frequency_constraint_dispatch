@@ -304,10 +304,10 @@ function build_model_interval_1!(m::Model)
    Eeff =Dict(key => value*Mbase/Pbase for (key, value) in Eeff)
 
    heffc = m.ext[:parameters][:heffc]
-   heffc =Dict(key => value /Mbase  for (key, value) in heffc)
+   heffc =Dict(key => value   for (key, value) in heffc)
 
    heffd = m.ext[:parameters][:heffd]
-   heffd =Dict(key => value /Mbase  for (key, value) in heffd)
+   heffd =Dict(key => value  for (key, value) in heffd)
 
    Eload_factor = m.ext[:parameters][:Eload_factor]
 
@@ -386,7 +386,7 @@ function build_model_interval_1!(m::Model)
 
    #Create objective function
 
-   obj= m.ext[:objective] = @objective(m,Min, sum(g_costs)+sum(rg_costs)+sum(rb_costs)+sum(re_costs)+sum(h_costs)
+   obj= m.ext[:objective] = @objective(m,Min, sum(g_costs)+sum(rg_costs)+sum(rb_costs)+sum(re_costs)-sum(h_costs)
    )
 
    #Constraints (market clearing constraint)
@@ -414,35 +414,40 @@ function build_model_interval_1!(m::Model)
    con5=m.ext[:constraints][:con5] = @constraint(m, [i=ID_E,j=J],re[i,j].<=pe[i,j]-PEmin[i])
 
    #Constraint end energy value of the batteries
-   con6=m.ext[:constraints][:con6] = @constraint(m, [i=ID_BESS,j=J[end]],End_e_b[i]-eb[i,j]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
+   #con6=m.ext[:constraints][:con6] = @constraint(m, [i=ID_BESS,j=J[end]],End_e_b[i]-eb[i,j]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
+   #con6=m.ext[:constraints][:con6] = @constraint(m, [i=ID_BESS,j=J[end]],End_e_b[i]==eb[i,j])
 
 
    #Constraint initial value energy of the batteries
-   con7=m.ext[:constraints][:con7] = @constraint(m, [i=ID_BESS,j=J[1]],eb[i,j+1]-Ini_e_b[i]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
+   #con7=m.ext[:constraints][:con7] = @constraint(m, [i=ID_BESS,j=J[1]],eb[i,j+1]-Ini_e_b[i]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
+   #con7=m.ext[:constraints][:con7] = @constraint(m, [i=ID_BESS,j=J[1]],eb[i,j]==Ini_e_b[i])
 
    #Constraint charging-discharging batteries
-   con8=m.ext[:constraints][:con8] = @constraint(m, [i=ID_BESS,j=J[2:end-1]],eb[i,j+1]-eb[i,j]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
+   con8=m.ext[:constraints][:con8] = @constraint(m, [i=ID_BESS,j=J[1:end-1]],eb[i,j+1]-eb[i,j]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
 
    ##Constraint Electrolyzer
    #Constraint  hydrogen production electrolyzer
-   con9=m.ext[:constraints][:con9] = @constraint(m, [i=ID_E,j=J],hfe[i,j]==pe[i,j]/Eeff[i])
+   con9=m.ext[:constraints][:con9] = @constraint(m, [i=ID_E,j=J],hfe[i,j]==pe[i,j]/Eeff[i]
+   )
 
    #Mass hydrogen equation
    #The term Eload_factorl[i]*PEmax[i]/Eeff[i] correspond to the hydrogen demand
-   con10=m.ext[:constraints][:con10] = @constraint(m, [i=ID_E,j=J],hfe[i,j]+hfsc[i,j]-hfsd[i,j]==hfg[i,j]+Eload_factor[i]*PEmax[i]/(Eeff[i]*Mbase/Pbase))
+   con10=m.ext[:constraints][:con10] = @constraint(m, [i=ID_E,j=J],hfe[i,j]hfsd[i,j]==hfsc[i,j]+hfg[i,j]+Eload_factor[i]*PEmax[i]/(Eeff[i]))
 
    #Hydrogen storage constraints
 
 
    #Constraint end hydrogen value of the hydrogen storage
-   con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
+   #con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
+   con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j])
 
 
    #Constraint initial value of the hydrogen storage
-   con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j+1]==Ini_h_s[i]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
+   #con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j+1]==Ini_h_s[i]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
+   con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j]==Ini_h_s[i])
 
    #Constraint charging-discharging of the hydrogen storage
-   con13=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[2:end-1]],hss[i,j+1]==hss[i,j]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
+   con13=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1:end-1]],hss[i,j+1]==hss[i,j]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
 
    #constraint ROCOF
    con17=m.ext[:constraints][:con17] = @constraint(m, [i=ID,j=J], pl[j]*FO/(2*(sum(values(inertia_Constant))-inertia_Constant[i])).<=rocofmax)
@@ -482,6 +487,7 @@ function build_model_interval_1!(m::Model)
    con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<=0.000001 + sum(rb[:,j])+sum(re[:,j])+sum(re[:,j])+(sum(rg[:, j])-rg[i, j]))
    =#
 end
+
 
 
 function build_model_interval_2!(m::Model)
@@ -581,7 +587,7 @@ end
 
 
 
-
+#=
 
 build_model_interval_2!(m)
 
@@ -607,7 +613,7 @@ open("output_3.txt", "w") do file
    end
 end
 
-
+=#
 
 
 
@@ -678,15 +684,19 @@ plot!(hssvec[1,:], label = "hssvec", lw = 2)
 # Display the plot
 plot!()
 
-plot(hfscvec[1,:], label = "hfscvec", lw = 2)
-plot!(hfsdvec[1,:], label = "hfsdvec", lw = 2)
-plot!(hssvec[1,:], label = "hssvec", lw = 2)
-# Display the plot
-plot!()
+
 
 plot(pbcvec[1,:], label = "pbcvec", lw = 2)
 plot!(pbdvec[1,:], label = "pbdvec", lw = 2)
 plot!(ebvec[1,:], label = "ebvec", lw = 2)
 plot!()
+
+plot(hfscvec[1,:], label = "hfscvec", lw = 2)
+plot!(hfsdvec[1,:], label = "hfsdvec", lw = 2)
+plot!(hssvec[1,:], label = "hssvec", lw = 2)
+plot!(hfgvec[1,:], label = "hfgvec", lw = 2)
+# Display the plot
+plot!()
+
 
 #end
