@@ -77,7 +77,7 @@ BESS:
   effc: 0.85 # Charge Efficiency
   effd: 0.9 # Discharge Efficiency
   Einit: 80 # MWh, starting value state of charge -> e_0
-  Efinal: 20 # MWh, starting value state of charge -> e_J
+  Efinal: 80 # MWh, starting value state of charge -> e_J
   deploymentTime: 0.2 # s
   reserveCosts: 14.29 # Frequency containment reserve cost EUR,h/MW
 

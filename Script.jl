@@ -582,10 +582,9 @@ end
 
 
 
-#=
 
 build_model_interval_2!(m)
-#=
+
 open("output_2.txt", "w") do file
    # Redirect stdout to the file within the block
    redirect_stdout(file) do
@@ -593,7 +592,7 @@ open("output_2.txt", "w") do file
        opt_time = solve_time(m)
    end
 end
-=#
+
 
 
 
@@ -607,7 +606,7 @@ open("output_3.txt", "w") do file
        opt_time = solve_time(m)
    end
 end
-=#
+
 
 
 

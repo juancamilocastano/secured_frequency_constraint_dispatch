@@ -1,0 +1,44 @@
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 10.0 (19045.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i9-12900H, instruction set [SSE2|AVX|AVX2]
+Thread count: 14 physical cores, 20 logical processors, using up to 20 threads
+
+Optimize a model with 65592 rows, 52488 columns and 3893784 nonzeros
+Model fingerprint: 0xed9cb526
+Model has 9648 quadratic constraints
+Coefficient statistics:
+  Matrix range     [4e-06, 2e+05]
+  QMatrix range    [4e-03, 6e-01]
+  QLMatrix range   [7e-01, 5e+01]
+  Objective range  [5e+05, 9e+06]
+  Bounds range     [4e-05, 1e+00]
+  RHS range        [1e-15, 1e+00]
+Presolve removed 19278 rows and 4286 columns (presolve time = 6s) ...
+Presolve removed 28638 rows and 4286 columns
+
+Continuous model is non-convex -- solving as a MIP
+
+
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 20s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 25s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 30s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 38s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 41s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 45s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 50s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 55s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 61s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 67s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 73s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 75s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 91s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 96s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 100s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 123s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 126s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 131s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 135s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 140s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 156s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 160s
+Processing MIP start from previous solve: 0 nodes explored in subMIP, total elapsed time 165s
