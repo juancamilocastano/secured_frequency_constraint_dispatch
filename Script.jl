@@ -414,13 +414,13 @@ function build_model_interval_1!(m::Model)
    con5=m.ext[:constraints][:con5] = @constraint(m, [i=ID_E,j=J],re[i,j].<=pe[i,j]-PEmin[i])
 
    #Constraint end energy value of the batteries
-   #con6=m.ext[:constraints][:con6] = @constraint(m, [i=ID_BESS,j=J[end]],End_e_b[i]-eb[i,j]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
+   con6=m.ext[:constraints][:con6] = @constraint(m, [i=ID_BESS,j=J[end]],End_e_b[i]-eb[i,j]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
    #con6=m.ext[:constraints][:con6] = @constraint(m, [i=ID_BESS,j=J[end]],End_e_b[i]==eb[i,j])
 
 
    #Constraint initial value energy of the batteries
    #con7=m.ext[:constraints][:con7] = @constraint(m, [i=ID_BESS,j=J[1]],eb[i,j+1]-Ini_e_b[i]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
-   #con7=m.ext[:constraints][:con7] = @constraint(m, [i=ID_BESS,j=J[1]],eb[i,j]==Ini_e_b[i])
+   con7=m.ext[:constraints][:con7] = @constraint(m, [i=ID_BESS,j=J[1]],eb[i,j]==Ini_e_b[i])
 
    #Constraint charging-discharging batteries
    con8=m.ext[:constraints][:con8] = @constraint(m, [i=ID_BESS,j=J[1:end-1]],eb[i,j+1]-eb[i,j]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
@@ -432,19 +432,19 @@ function build_model_interval_1!(m::Model)
 
    #Mass hydrogen equation
    #The term Eload_factorl[i]*PEmax[i]/Eeff[i] correspond to the hydrogen demand
-   con10=m.ext[:constraints][:con10] = @constraint(m, [i=ID_E,j=J],hfe[i,j]hfsd[i,j]==hfsc[i,j]+hfg[i,j]+Eload_factor[i]*PEmax[i]/(Eeff[i]))
+   con10=m.ext[:constraints][:con10] = @constraint(m, [i=ID_E,j=J],hfe[i,j]+hfsd[i,j]==hfsc[i,j]+hfg[i,j]+Eload_factor[i]*PEmax[i]/(Eeff[i]))
 
    #Hydrogen storage constraints
 
 
    #Constraint end hydrogen value of the hydrogen storage
-   #con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
-   con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j])
+   con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
+   #con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j])
 
 
    #Constraint initial value of the hydrogen storage
-   #con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j+1]==Ini_h_s[i]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
-   con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j]==Ini_h_s[i])
+   con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j+1]==Ini_h_s[i]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
+   #con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j]==Ini_h_s[i])
 
    #Constraint charging-discharging of the hydrogen storage
    con13=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1:end-1]],hss[i,j+1]==hss[i,j]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
@@ -570,13 +570,14 @@ function build_model_interval_3!(m::Model)
 
    con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])-rg[i, j])*Dtb/Dtg)
 
-   con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<=0.000001 + sum(rb[:,j])+sum(re[:,j])+sum(re[:,j])+(sum(rg[:, j])-rg[i, j]))
+   con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<=0.000001 + sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])-rg[i, j]))
    
    return (m)
 end
 
 build_model_interval_1!(m)
 
+#=
 open("output_1.txt", "w") do file
    # Redirect stdout to the file within the block
    redirect_stdout(file) do
@@ -587,7 +588,7 @@ end
 
 
 
-#=
+
 
 build_model_interval_2!(m)
 
@@ -600,7 +601,7 @@ open("output_2.txt", "w") do file
 end
 
 
-
+=#
 
 
 build_model_interval_3!(m)
@@ -613,7 +614,7 @@ open("output_3.txt", "w") do file
    end
 end
 
-=#
+
 
 
 
@@ -686,16 +687,20 @@ plot!()
 
 
 
-plot(pbcvec[1,:], label = "pbcvec", lw = 2)
-plot!(pbdvec[1,:], label = "pbdvec", lw = 2)
-plot!(ebvec[1,:], label = "ebvec", lw = 2)
-plot!()
+
 
 plot(hfscvec[1,:], label = "hfscvec", lw = 2)
 plot!(hfsdvec[1,:], label = "hfsdvec", lw = 2)
 plot!(hssvec[1,:], label = "hssvec", lw = 2)
 plot!(hfgvec[1,:], label = "hfgvec", lw = 2)
+plot!(hfevec[1,:], label = "hfevec", lw = 2)
+plot!(hfgvec[1,:], label = "hfgvec", lw = 2)
 # Display the plot
+plot!()
+
+plot(pbcvec[1,:], label = "pbcvec", lw = 2)
+plot!(pbdvec[1,:], label = "pbdvec", lw = 2)
+plot!(ebvec[1,:], label = "ebvec", lw = 2)
 plot!()
 
 

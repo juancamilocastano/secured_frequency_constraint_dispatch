@@ -3,42 +3,20 @@ Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 10.0 (19045.2)
 CPU model: 12th Gen Intel(R) Core(TM) i9-12900H, instruction set [SSE2|AVX|AVX2]
 Thread count: 14 physical cores, 20 logical processors, using up to 20 threads
 
-Optimize a model with 21324 rows, 17496 columns and 796296 nonzeros
-Model fingerprint: 0x445c1041
-Model has 3696 quadratic constraints
+Optimize a model with 17176 rows, 8424 columns and 508956 nonzeros
+Model fingerprint: 0x8decbabf
+Model has 3216 quadratic constraints
 Coefficient statistics:
   Matrix range     [1e-02, 4e+00]
-  QMatrix range    [3e-01, 1e+00]
+  QMatrix range    [3e-01, 3e-01]
   QLMatrix range   [7e-01, 5e+01]
   Objective range  [5e+05, 9e+06]
   Bounds range     [4e-05, 1e+00]
   RHS range        [1e-14, 1e+00]
-  QRHS range       [7e-03, 4e-02]
-Presolve removed 9592 rows and 120 columns
+Presolve removed 6646 rows and 214 columns
+Presolve time: 0.03s
 
-Continuous model is non-convex -- solving as a MIP
+Barrier solved model in 0 iterations and 0.03 seconds (0.15 work units)
+Model is infeasible
 
-Presolve removed 20512 rows and 14807 columns
-Presolve time: 2.50s
-Presolved: 2732 rows, 2689 columns, 13163 nonzeros
-Presolved model has 24 quadratic constraint(s)
-Presolved model has 480 bilinear constraint(s)
-Variable types: 2689 continuous, 0 integer (0 binary)
-
-Root relaxation: objective 4.832076e+07, 1461 iterations, 0.01 seconds (0.00 work units)
-
-    Nodes    |    Current Node    |     Objective Bounds      |     Work
- Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
-
-H    0     0                    4.832076e+07 4.8321e+07  0.00%     -    2s
-*    0     0               0    4.832076e+07 4.8321e+07  0.00%     -    2s
-
-Explored 1 nodes (1461 simplex iterations) in 2.88 seconds (4.84 work units)
-Thread count was 20 (of 20 available processors)
-
-Solution count 1: 4.83208e+07 
-
-Optimal solution found (tolerance 1.00e-04)
-Best objective 4.832075593022e+07, best bound 4.832075593012e+07, gap 0.0000%
-
-User-callback calls 1054, time in user-callback 0.00 sec
+User-callback calls 59, time in user-callback 0.00 sec

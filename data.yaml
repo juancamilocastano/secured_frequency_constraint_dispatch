@@ -5,7 +5,7 @@ timeStepLength: 1 # hrs
 hydrogenCost: 4 # EUR/kg
 deltaf: 0.8 # Hz
 FO: 50 # Hz
-rocofmax: 1.4 # beteween 0.25hz/s and 2.5 hz/s https://www.sciencedirect.com/science/article/pii/S0360544220308835
+rocofmax: 1.4 # beteween 0.25hz/s and 2.5 hz/s https://www.sciencedirect.com/science/article/pii/S0200544220308835
 
 
 
@@ -27,7 +27,7 @@ dispatchableGenerators:
   innertiaCostant: 5 # s
   maxFrdelivarable: 0 # 
   deploymentTime: 15 # s
-  reserveCosts: 36 #Fast frequency reserve cost EUR,h/MW
+  reserveCosts: 14.29 #Fast frequency reserve cost EUR,h/MW
   
   
   
@@ -45,7 +45,7 @@ dispatchableGenerators:
   innertiaCostant: 4 # s
   maxFrdelivarable: 50 # 
   deploymentTime: 15 # s
-  reserveCosts: 36 #Fast frequency reserve cost EUR,h/MW
+  reserveCosts: 14.29 #Fast frequency reserve cost EUR,h/MW
 
 
  OCGT:
@@ -61,7 +61,7 @@ dispatchableGenerators:
   innertiaCostant: 4 # s
   maxFrdelivarable: 20 # 
   deploymentTime: 15 # s
-  reserveCosts: 36 #Fast frequency reserve cost EUR,h/MW
+  reserveCosts: 14.29 #Fast frequency reserve cost EUR,h/MW
 
 variableGenerators:
  Solar:
@@ -76,8 +76,8 @@ BESS:
   DODmax: 0.793 # corresponds to considering DOD_max=0.9 + 0.207 which is the required energy to keep providing reserve during 15 minutes
   effc: 0.85 # Charge Efficiency
   effd: 0.9 # Discharge Efficiency
-  Einit: 80 # MWh, starting value state of charge -> e_0
-  Efinal: 80 # MWh, starting value state of charge -> e_J
+  Einit: 145 # MWh, starting value state of charge -> e_0
+  Efinal: 145 # MWh, starting value state of charge -> e_J
   deploymentTime: 0.2 # s
   reserveCosts: 14.29 # Frequency containment reserve cost EUR,h/MW
 
