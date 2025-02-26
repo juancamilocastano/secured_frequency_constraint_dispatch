@@ -152,8 +152,8 @@ function process_parameters!(m::Model, data::Dict)
    m.ext[:parameters][:GminD] = converted_dict_GminD
    converted_dict_Dtg = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:Dtg])
    m.ext[:parameters][:Dtg] = converted_dict_Dtg
-   converted_dict_res_cost_g = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:res_cost_g]) 
-   m.ext[:parameters][:res_cost_g] = converted_dict_res_cost_g
+   #converted_dict_res_cost_g = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:res_cost_g]) 
+   #m.ext[:parameters][:res_cost_g] = converted_dict_res_cost_g
    converted_dict_inertia_Constant = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:inertia_Constant])
    m.ext[:parameters][:inertia_Constant] = converted_dict_inertia_Constant
 
@@ -577,7 +577,7 @@ end
 
 build_model_interval_1!(m)
 
-#=
+
 open("output_1.txt", "w") do file
    # Redirect stdout to the file within the block
    redirect_stdout(file) do
@@ -601,7 +601,7 @@ open("output_2.txt", "w") do file
 end
 
 
-=#
+
 
 
 build_model_interval_3!(m)
@@ -686,17 +686,6 @@ plot!(hssvec[1,:], label = "hssvec", lw = 2)
 plot!()
 
 
-
-
-
-plot(hfscvec[1,:], label = "hfscvec", lw = 2)
-plot!(hfsdvec[1,:], label = "hfsdvec", lw = 2)
-plot!(hssvec[1,:], label = "hssvec", lw = 2)
-plot!(hfgvec[1,:], label = "hfgvec", lw = 2)
-plot!(hfevec[1,:], label = "hfevec", lw = 2)
-plot!(hfgvec[1,:], label = "hfgvec", lw = 2)
-# Display the plot
-plot!()
 
 plot(pbcvec[1,:], label = "pbcvec", lw = 2)
 plot!(pbdvec[1,:], label = "pbdvec", lw = 2)
