@@ -46,6 +46,14 @@ function define_sets!(m::Model, data::Dict, ts::DataFrame)
        ID = m.ext[:sets][:ID] = push!(ID,string(idtype,"_$(i)"))
     end
 
+    ID_Nuclear = Array{Union{Nothing,String}}(nothing,0)
+    for i in 1:data["dispatchableGenerators"]["Nuclear"]["numberOfUnits"]
+      ID_Nuclear = m.ext[:sets][:ID_Nuclear] = push!(ID_Nuclear,string("Nuclear_$(i)"))
+   end
+
+
+
+
     #Electrolyzer per type
     IDtype_E = m.ext[:sets][:IDtype] = [id for id in keys(data["Electrolyzer"])]
     #Electrolyzers per unit
@@ -112,6 +120,13 @@ function process_parameters!(m::Model, data::Dict)
    m.ext[:parameters][:Dtg]=Dict()
    m.ext[:parameters][:res_cost_g]=Dict()
    m.ext[:parameters][:inertia_Constant]=Dict()
+    m.ext[:parameters][:startupCost]=Dict()
+    m.ext[:parameters][:minUpTime]=Dict()
+    m.ext[:parameters][:minDownTime]=Dict()
+    m.ext[:parameters][:maxFrdelivarable]=Dict()
+    m.ext[:parameters][:notloadCost]=Dict()
+
+
    for i in ID
       if length(i)==6 
          m.ext[:parameters][:FCOST][i] =  d[SubString(i,1:length(i)-2)]["marginalcost"] #	β Marginal fuel cost
@@ -120,6 +135,16 @@ function process_parameters!(m::Model, data::Dict)
          m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-2)]["deploymentTime"]
          m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-2)]["reserveCosts"]
          m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-2)]["innertiaCostant"]
+        m.ext[:parameters][:startupCost][i]= d[SubString(i,1:length(i)-2)]["startupCost"]
+        m.ext[:parameters][:minUpTime][i]= d[SubString(i,1:length(i)-2)]["minUpTime"]
+        m.ext[:parameters][:minDownTime][i]= d[SubString(i,1:length(i)-2)]["minDownTime"]
+        m.ext[:parameters][:maxFrdelivarable][i]= d[SubString(i,1:length(i)-2)]["maxFrdelivarable"]
+        m.ext[:parameters][:notloadCost][i]= d[SubString(i,1:length(i)-2)]["notloadCost"]
+            
+
+  
+        
+
       else 
          if length(i)==7 
             m.ext[:parameters][:FCOST][i] = d[SubString(i,1:length(i)-3)]["marginalcost"] #	β Marginal fuel cost
@@ -128,6 +153,12 @@ function process_parameters!(m::Model, data::Dict)
             m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-3)]["deploymentTime"]
             m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-3)]["reserveCosts"]
             m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-3)]["innertiaCostant"]
+            m.ext[:parameters][:startupCost][i]= d[SubString(i,1:length(i)-3)]["startupCost"]
+            m.ext[:parameters][:minUpTime][i]= d[SubString(i,1:length(i)-3)]["minUpTime"]
+            m.ext[:parameters][:minDownTime][i]= d[SubString(i,1:length(i)-3)]["minDownTime"]
+            m.ext[:parameters][:maxFrdelivarable][i]= d[SubString(i,1:length(i)-3)]["maxFrdelivarable"]
+            m.ext[:parameters][:notloadCost][i]= d[SubString(i,1:length(i)-3)]["notloadCost"]
+
          else
             if length(i)==9
                m.ext[:parameters][:FCOST][i] = d[SubString(i,1:length(i)-2)]["marginalcost"] #	β Marginal fuel cost
@@ -136,6 +167,11 @@ function process_parameters!(m::Model, data::Dict)
                m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-2)]["deploymentTime"]
                m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-2)]["reserveCosts"]
                m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-2)]["innertiaCostant"]
+                m.ext[:parameters][:startupCost][i]= d[SubString(i,1:length(i)-2)]["startupCost"]
+                m.ext[:parameters][:minUpTime][i]= d[SubString(i,1:length(i)-2)]["minUpTime"]
+                m.ext[:parameters][:minDownTime][i]= d[SubString(i,1:length(i)-2)]["minDownTime"]
+                m.ext[:parameters][:maxFrdelivarable][i]= d[SubString(i,1:length(i)-2)]["maxFrdelivarable"]
+                m.ext[:parameters][:notloadCost][i]= d[SubString(i,1:length(i)-2)]["notloadCost"]
             else
                if length(i)==8
                m.ext[:parameters][:FCOST][i] = d[SubString(i,1:length(i)-4)]["marginalcost"] #	β Marginal fuel cost
@@ -143,7 +179,12 @@ function process_parameters!(m::Model, data::Dict)
                m.ext[:parameters][:GminD][i] =  d[SubString(i,1:length(i)-4)]["minStableOperatingPoint"]
                m.ext[:parameters][:Dtg][i] =  d[SubString(i,1:length(i)-4)]["deploymentTime"] 
                m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-4)]["reserveCosts"]
-               m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-4)]["innertiaCostant"]          
+               m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-4)]["innertiaCostant"]
+               m.ext[:parameters][:startupCost][i]= d[SubString(i,1:length(i)-4)]["startupCost"]
+               m.ext[:parameters][:minUpTime][i]= d[SubString(i,1:length(i)-4)]["minUpTime"]
+               m.ext[:parameters][:minDownTime][i]= d[SubString(i,1:length(i)-4)]["minDownTime"]
+               m.ext[:parameters][:maxFrdelivarable][i]= d[SubString(i,1:length(i)-4)]["maxFrdelivarable"]
+               m.ext[:parameters][:notloadCost][i]= d[SubString(i,1:length(i)-4)]["notloadCost"]          
                else
                end         
             end
@@ -163,6 +204,17 @@ function process_parameters!(m::Model, data::Dict)
    #m.ext[:parameters][:res_cost_g] = converted_dict_res_cost_g
    converted_dict_inertia_Constant = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:inertia_Constant])
    m.ext[:parameters][:inertia_Constant] = converted_dict_inertia_Constant
+    converted_dict_startupCost = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:startupCost])
+    m.ext[:parameters][:startupCost] = converted_dict_startupCost
+    converted_dict_minUpTime = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:minUpTime])
+    m.ext[:parameters][:minUpTime] = converted_dict_minUpTime
+    converted_dict_minDownTime = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:minDownTime])
+    m.ext[:parameters][:minDownTime] = converted_dict_minDownTime
+    converted_dict_maxFrdelivarable = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:maxFrdelivarable])
+    m.ext[:parameters][:maxFrdelivarable] = converted_dict_maxFrdelivarable
+    converted_dict_notloadCost = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:notloadCost])
+    m.ext[:parameters][:notloadCost] = converted_dict_notloadCost
+
 
    #Parameter variable generators
 
@@ -262,6 +314,7 @@ ID= m.ext[:sets][:ID]
 IV = m.ext[:sets][:IV]
 ID_E = m.ext[:sets][:ID_E]
 ID_BESS = m.ext[:sets][:ID_BESS]
+ID_Nuclear = m.ext[:sets][:ID_Nuclear]
 
 # Extract time series data and convert them in PU values
 D= m.ext[:timeseries][:D]
@@ -289,6 +342,22 @@ GmaxD=Dict(key => value / Pbase for (key, value) in GmaxD)
 
 GminD=m.ext[:parameters][:GminD]
 GminD =Dict(key => value / Pbase for (key, value) in GminD)
+
+startupCost=m.ext[:parameters][:startupCost]
+
+
+minUpTime=m.ext[:parameters][:minUpTime]
+
+
+minDownTime=m.ext[:parameters][:minDownTime]
+
+
+maxFrdelivarable=m.ext[:parameters][:maxFrdelivarable]
+
+
+notloadCost=m.ext[:parameters][:notloadCost]
+
+
 
 #Dtg=m.ext[:parameters][:Dtg]
 Dtg=15
@@ -350,6 +419,9 @@ PBmax=Dict(key => value /Pbase  for (key, value) in PBmax)
 EBmax = m.ext[:parameters][:EBmax]
 EBmax =Dict(key => value /Pbase  for (key, value) in EBmax)
 
+
+
+
 DOD_max = m.ext[:parameters][:DOD_max]
 Beffc = m.ext[:parameters][:Beffc]
 Beffd = m.ext[:parameters][:Beffd]
@@ -364,7 +436,11 @@ Dtb=0.2
 res_cost_b = m.ext[:parameters][:res_cost_b]
 
 # create variables 
-g = m.ext[:variables][:g] = @variable(m, [i=ID,j=J],lower_bound=GminD[i], base_name="generation") #Power generation generators
+
+zuc = m.ext[:variables][:zuc] = @variable(m, [i=ID,j=J], binary=true, base_name="commitment")
+v = m.ext[:variables][:v] = @variable(m, [i=ID,j=J], binary=true, base_name="start_up")
+w = m.ext[:variables][:w] = @variable(m, [i=ID,j=J], binary=true, base_name="shoot_down")
+g = m.ext[:variables][:g] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="generation") #Power generation generators
 x = m.ext[:variables][:x] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="x") #Auxiliary variable rotate second order cone
 y = m.ext[:variables][:y] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="y") #Auxiliary variable rotate second order cone
 z = m.ext[:variables][:z] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="z") #Auxiliary variable rotate second order cone
@@ -384,6 +460,7 @@ hss = m.ext[:variables][:hss] = @variable(m, [i=ID_E,j=J],lower_bound=  Min_h_s[
 
 
 
+
 #create affine expressions
 
 g_costs=m.ext[:expressions][:g_costs] = @expression(m, [i=ID,j=J],g[i,j]*CostFuel[i]*Pbase
@@ -396,10 +473,14 @@ re_costs=m.ext[:expressions][:re_costs] = @expression(m, [i=ID_E,j=J],re[i,j]*re
    )
 h_costs=m.ext[:expressions][:h_costs] = @expression(m, [i=ID_E,j=J],hfg[i,j]*hydrogenCost*Mbase
    )
+scu_UC=m.ext[:expressions][:scu_UC] = @expression(m, [i=ID,j=J], startupCost[i]*v[i,j]*Pbase)
+
+Inertia_Expression=m.ext[:expressions][:Inertia_Expression] = @expression(m, [i=ID,j=J],Inertia_Vector[i]*zuc[i,j])
+ 
 
 #Create objective function
 
-obj= m.ext[:objective] = @objective(m,Min, sum(g_costs)+sum(rg_costs)+sum(rb_costs)+sum(re_costs)-sum(h_costs) #Objective function
+obj= m.ext[:objective] = @objective(m,Min, sum(g_costs)+sum(rg_costs)+sum(rb_costs)+sum(re_costs)+sum(scu_UC)-sum(h_costs) #Objective function
 )
 
 #Constraints (power balance)
@@ -408,9 +489,24 @@ WC[j]*Installed_W+sum(g[i,j] for i in ID) -sum(pbc[i,j] for i in ID_BESS)+sum(pb
 )
 
 #Constraint upper bound generators power
-con2=m.ext[:constraints][:con2] = @constraint(m, [i=ID,j=J],
-g[i,j]+rg[i,j].<=GmaxD[i]
+con2_1=m.ext[:constraints][:con2_1] = @constraint(m, [i=ID,j=J],
+g[i,j]+rg[i,j].<=GmaxD[i]*zuc[i,j]
 )
+#Constraint upper bound generators power
+con2_2=m.ext[:constraints][:con2_2] = @constraint(m, [i=ID,j=J],
+GminD[i]*zuc[i,j].<=g[i,j]+rg[i,j]
+)
+
+#Initial status generators
+con2_3=m.ext[:constraints][:con2_3] = @constraint(m, [i=ID,j=J[1]],1-zuc[i,j]+v[i,j]-w[i,j]==0)
+
+con2_4=m.ext[:constraints][:con2_4] = @constraint(m, [i=ID,j=J[2:end]],
+zuc[i,j-1]-zuc[i,j]+v[i,j]-w[i,j]==0
+)
+con2_5=m.ext[:constraints][:con2_5] = @constraint(m, [i=ID_Nuclear,j=J],
+zuc[i,j]==1
+)
+
 
 #Constraint lost of generation
 
@@ -471,12 +567,11 @@ con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j+1]==I
 #Constraint charging-discharging of the hydrogen storage
 con13=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1:end-1]],hss[i,j+1]==hss[i,j]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
 
-#constraint ROCOF
-con17=m.ext[:constraints][:con17] = @constraint(m, [i=ID,j=J], pl[j]*FO/(2*(sum(values(Inertia_Vector))-Inertia_Vector[i])).<=rocofmax)
+
 
 
 #Constraint maximum frequency variation
-con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(values(Inertia_Vector))-Inertia_Vector[i])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j])-rg[i, j])/Dtg)).>=pl[j]^2/(4*deltaf))
+con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j])-rg[i, j])/Dtg)).>=pl[j]^2/(4*deltaf))
 
 #constraints nadir occurrence time
 
@@ -484,6 +579,11 @@ con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=0)
 
 con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<= 0.00000000000001+sum(re[:, j])+sum(rb[:,j])*(Dte/Dtb)+(sum(rg[:, j])-rg[i, j])*Dte/Dtg)
 
+#constraint ROCOF
+
+con17=m.ext[:constraints][:con17] = @constraint(m, [i=ID,j=J], pl[j]*FO/2 .<=rocofmax*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]))
+
+#QSS frequency constraint
 con18=m.ext[:constraints][:con18] = @constraint(m, [i=ID,j=J],pl[j].<=0.00000000000001+sum(re[:, j])+sum(rb[:, j])+(sum(rg[:, j])-rg[i, j]))
 
 open("output_1.txt", "w") do file
@@ -504,9 +604,9 @@ end
 
 
     #Constraint maximum frequency variation
-   #con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(values(Inertia_Vector))-Inertia_Vector[i])/FO-sum(re[:,j])*Dte/(4*deltaf))*(sum(rb[:, j])/Dtb+(sum(rg[:, j])-rg[i, j])/Dtg).>=(pl[j]-sum(re[:, j]))^2/(4*deltaf))
+   #con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO-sum(re[:,j])*Dte/(4*deltaf))*(sum(rb[:, j])/Dtb+(sum(rg[:, j])-rg[i, j])/Dtg).>=(pl[j]-sum(re[:, j]))^2/(4*deltaf))
    
-   con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(values(Inertia_Vector))-Inertia_Vector[i])/FO-sum(re[:, j])*Dte/2)
+   con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO-sum(re[:, j])*Dte/2)
    con14_2=m.ext[:constraints][:con14_2] = @constraint(m,[i=ID,j=J],z[i,j] ==sum(re[:, j])/Dte-(sum(rg[:, j])-rg[i, j])/Dtg)
    con14_3=m.ext[:constraints][:con14_3] = @constraint(m,[i=ID,j=J],[y[i,j]; z[i,j]; pl[j]-sum(re[:, j])] in RotatedSecondOrderCone())
    #constraints nadir occurrence time
@@ -532,7 +632,7 @@ for j in J
  end
 
 
- con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(values(Inertia_Vector))-Inertia_Vector[i])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
+ con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
  con14_2=m.ext[:constraints][:con14_2] = @constraint(m,[i=ID,j=J],z[i,j] ==(sum(rg[:, j])-rg[i, j])/Dtg)
  con14_3=m.ext[:constraints][:con14_3] = @constraint(m,[i=ID,j=J],[y[i,j]; z[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
 
@@ -568,10 +668,13 @@ hfg= value.(m.ext[:variables][:hfg])*Mbase
 hfsc= value.(m.ext[:variables][:hfsc])*Mbase
 hfsd= value.(m.ext[:variables][:hfsd])*Mbase
 hss= value.(m.ext[:variables][:hss])*Mbase
-pw=
+zucvalues=  value.(m.ext[:variables][:zuc])
+
+
 
 Ivec = [i for  i in I]
 Bvec = [i for  i in ID_BESS]
+Evec = [i for  i in ID_E]
 gvec = [g[i,j] for  i in ID, j in J]
 rgvec = [rg[i,j] for  i in ID, j in J]
 revec = [re[i,j] for  i in ID_E, j in J]
@@ -590,11 +693,14 @@ plvec= [pl[j] for j in J]
 ps=SC*Installed_S*Pbase
 pw=WC*Installed_W*Pbase
 
+
 using StatsPlots
 p2 = groupedbar(transpose(gvec[:,:]),bar_position = :stack,label=permutedims(Ivec),legend=:outertopright);
-plot(p2, layout = (1,2), size=(2400, 1900))
-p3 = groupedbar(transpose(rgvec[:,:]),bar_position = :stack,label=permutedims(Bvec),legend=:outertopright);
-plot(p3, layout = (1,2), size=(2400, 1900))
+plot(p2, layout = (1,2), size=(500, 500))
+p3 = groupedbar(transpose(rbvec[:,:]),bar_position = :stack,label=permutedims(Bvec),legend=:outertopright);
+plot(p3, layout = (1,2), size=(500, 500))
+p4 = groupedbar(transpose(revec[:,:]),bar_position = :stack,label=permutedims(Evec),legend=:outertopright);
+plot(p4, layout = (1,2), size=(500, 500))
 # Plot the vectors
 plot(hfevec[1,:], label = "hfevec", lw = 2)
 plot!(hfgvec[1,:], label = "hfgvec", lw = 2)
@@ -652,7 +758,7 @@ color = :red,
 linestyle = :dash)
 
 display(p)
-savefig("Procured reserve.png")
+
 
 
 
@@ -681,4 +787,28 @@ plot!(pbdvec[1,:],
       label = "Discharging power")  # Different label
 
 # Save the combined plot
-savefig("Battery.png")
+
+Sum_Inertia_Vector=Dict()
+
+for j in J
+   Sum_Inertia_Vector[j]=sum(Inertia_Vector[i]*value.(zuc[i,j])*Pbase for i in ID)  
+end
+
+x_Inertia = collect(keys(Sum_Inertia_Vector))
+y_Inertia = collect(values(Sum_Inertia_Vector))
+
+# Create scatter plot
+p4=scatter(x_Inertia, y_Inertia, 
+    title = "Total Inertia vs Time",
+    xlabel = "Time[h]",
+    ylabel = "Sum of Inertia",
+    legend = false,
+    markersize = 5
+)
+
+
+
+
+
+
+
