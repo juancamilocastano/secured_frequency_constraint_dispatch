@@ -234,7 +234,7 @@ function process_parameters!(m::Model, data::Dict)
    m.ext[:parameters][:Dte] = Dict(i => d[SubString(i,1:length(i)-2)]["deploymentTime"] for i in ID_E) #final hydrogen storage in kg
    m.ext[:parameters][:res_cost_e]= Dict(i => d[SubString(i,1:length(i)-2)]["reserveCosts"] for i in ID_E) #final hydrogen storage in kg
    m.ext[:parameters][:start_up_cost_e] = Dict(i => d[SubString(i,1:length(i)-2)]["startupCost"] for i in ID_E) # Startu up cost of electrolyzers in Euros
-   m.ext[:parameters][:compresor_power] = Dict(i => d[SubString(i,1:length(i)-2)]["power_compressor"] for i in ID_E) # Power consumption of compressor in 
+   m.ext[:parameters][:compresor_power] = Dict(i => d[SubString(i,1:length(i)-2)]["power_compressor"] for i in ID_E) # Power consumption of compressor un MWh/kg 
    
 
 
@@ -406,10 +406,12 @@ Ini_h_s =Dict(key => value /Mbase  for (key, value) in Ini_h_s)
 End_h_s = m.ext[:parameters][:End_h_s]
 End_h_s =Dict(key => value /Mbase  for (key, value) in End_h_s)
 
-
 #Dte = m.ext[:parameters][:Dte]
 Dte=0.2
 res_cost_e= m.ext[:parameters][:res_cost_e]
+start_up_cost_e = m.ext[:parameters][:start_up_cost_e]
+compresor_power = m.ext[:parameters][:compresor_power]
+compresor_power =Dict(key => value *Mbase/Pbase  for (key, value) in compresor_power)
 
 
 
@@ -420,8 +422,6 @@ PBmax=Dict(key => value /Pbase  for (key, value) in PBmax)
 
 EBmax = m.ext[:parameters][:EBmax]
 EBmax =Dict(key => value /Pbase  for (key, value) in EBmax)
-
-
 
 
 DOD_max = m.ext[:parameters][:DOD_max]
@@ -458,11 +458,15 @@ hfg = m.ext[:variables][:hfg] = @variable(m, [i=ID_E,j=J],lower_bound=-Max_h_f[i
 hfsc = m.ext[:variables][:hfsc] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= Max_h_f[i],base_name="hfsc") #Hydrogen flow storage charging
 hfsd = m.ext[:variables][:hfsd] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= Max_h_f[i],base_name="hfsd") #Hydrogen flow storage discharging
 pe = m.ext[:variables][:pe] = @variable(m,  [i=ID_E,j=J], base_name="pe") #Power consumption electrolyzer
+
 hss = m.ext[:variables][:hss] = @variable(m, [i=ID_E,j=J],lower_bound=Min_h_s[i], upper_bound= Max_h_s[i], base_name="hss") #hydrogen storage limit
 
 zon_e = m.ext[:variables][:zon_e] = @variable(m, [i=ID_E,j=J], binary=true, base_name="E_commitment")
 zsb_e= m.ext[:variables][:zsb_e] = @variable(m, [i=ID_E,j=J], binary=true, base_name="E_stand")
+zsu_e= m.ext[:variables][:zsb_e] = @variable(m, [i=ID_E,j=J], binary=true, base_name="E_up")
 pe_s = m.ext[:variables][:pe_s] = @variable(m,  [i=ID_E,j=J], base_name="pe") #Power consumption electrolyzer standby
+pe_c= m.ext[:variables][:pe_c] = @variable(m,  [i=ID_E,j=J], base_name="pe_c") #Power consumption of compressor electrolyzer 
+
 
 
 
@@ -480,12 +484,16 @@ h_costs=m.ext[:expressions][:h_costs] = @expression(m, [i=ID_E,j=J],hfg[i,j]*hyd
    )
 scu_UC=m.ext[:expressions][:scu_UC] = @expression(m, [i=ID,j=J], startupCost[i]*v[i,j]*Pbase)
 
+Escu_UC=m.ext[:expressions][:Escu_UC] = @expression(m, [i=ID_E,j=J], start_up_cost_e[i]*zon_e[i,j])
+
+CPE_costs=m.ext[:expressions][:CPE_costs] = @expression(m, [i=ID_E,j=J], pe_c[i,j]*compresor_power[i]*Pbase)
+
 Inertia_Expression=m.ext[:expressions][:Inertia_Expression] = @expression(m, [i=ID,j=J],Inertia_Vector[i]*zuc[i,j])
  
 
 #Create objective function
 
-obj= m.ext[:objective] = @objective(m,Min, sum(g_costs)+sum(rg_costs)+sum(rb_costs)+sum(re_costs)+sum(scu_UC)-sum(h_costs) #Objective function
+obj= m.ext[:objective] = @objective(m,Min, sum(g_costs)+sum(rg_costs)+sum(rb_costs)+sum(re_costs)+sum(scu_UC)+sum(Escu_UC)+sum(CPE_costs)-sum(h_costs) #Objective function
 )
 
 #Constraints (power balance)
@@ -613,6 +621,9 @@ con13_4=m.ext[:constraints][:con13_4] = @constraint(m, [i=ID_E,j=J],pe_s[i,j]==(
 con13_5=m.ext[:constraints][:con13_5] = @constraint(m, [i=ID_E,j=J],
 zon_e[i,j]+zsb_e[i,j]<=1
 )
+
+#Power consumption of the electrolyzer
+con13_8=m.ext[:constraints][:con13_8] = @constraint(m, [i=ID_E,j=J],pe_c[i,j]==compresor_power[i]*hfe[i,j])
 
 
 #Constraint maximum frequency variation
