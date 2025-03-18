@@ -28,7 +28,7 @@ using JuMP
 using Ipopt
 using Gurobi
 
-
+println("2")
 m = Model(optimizer_with_attributes(Gurobi.Optimizer))
 
 
@@ -121,8 +121,8 @@ function process_parameters!(m::Model, data::Dict)
    m.ext[:parameters][:res_cost_g]=Dict()
    m.ext[:parameters][:inertia_Constant]=Dict()
     m.ext[:parameters][:startupCost]=Dict()
-    m.ext[:parameters][:minUpTime]=Dict()
-    m.ext[:parameters][:minDownTime]=Dict()
+    m.ext[:parameters][:MUT]=Dict()
+    m.ext[:parameters][:MDT]=Dict()
     m.ext[:parameters][:maxFrdelivarable]=Dict()
     m.ext[:parameters][:notloadCost]=Dict()
 
@@ -136,8 +136,8 @@ function process_parameters!(m::Model, data::Dict)
          m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-2)]["reserveCosts"]
          m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-2)]["innertiaCostant"]
         m.ext[:parameters][:startupCost][i]= d[SubString(i,1:length(i)-2)]["startupCost"]
-        m.ext[:parameters][:minUpTime][i]= d[SubString(i,1:length(i)-2)]["minUpTime"]
-        m.ext[:parameters][:minDownTime][i]= d[SubString(i,1:length(i)-2)]["minDownTime"]
+        m.ext[:parameters][:MUT][i]= d[SubString(i,1:length(i)-2)]["minUpTime"]
+        m.ext[:parameters][:MDT][i]= d[SubString(i,1:length(i)-2)]["minDownTime"]
         m.ext[:parameters][:maxFrdelivarable][i]= d[SubString(i,1:length(i)-2)]["maxFrdelivarable"]
         m.ext[:parameters][:notloadCost][i]= d[SubString(i,1:length(i)-2)]["notloadCost"]
             
@@ -154,8 +154,8 @@ function process_parameters!(m::Model, data::Dict)
             m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-3)]["reserveCosts"]
             m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-3)]["innertiaCostant"]
             m.ext[:parameters][:startupCost][i]= d[SubString(i,1:length(i)-3)]["startupCost"]
-            m.ext[:parameters][:minUpTime][i]= d[SubString(i,1:length(i)-3)]["minUpTime"]
-            m.ext[:parameters][:minDownTime][i]= d[SubString(i,1:length(i)-3)]["minDownTime"]
+            m.ext[:parameters][:MUT][i]= d[SubString(i,1:length(i)-3)]["minUpTime"]
+            m.ext[:parameters][:MDT][i]= d[SubString(i,1:length(i)-3)]["minDownTime"]
             m.ext[:parameters][:maxFrdelivarable][i]= d[SubString(i,1:length(i)-3)]["maxFrdelivarable"]
             m.ext[:parameters][:notloadCost][i]= d[SubString(i,1:length(i)-3)]["notloadCost"]
 
@@ -168,8 +168,8 @@ function process_parameters!(m::Model, data::Dict)
                m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-2)]["reserveCosts"]
                m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-2)]["innertiaCostant"]
                 m.ext[:parameters][:startupCost][i]= d[SubString(i,1:length(i)-2)]["startupCost"]
-                m.ext[:parameters][:minUpTime][i]= d[SubString(i,1:length(i)-2)]["minUpTime"]
-                m.ext[:parameters][:minDownTime][i]= d[SubString(i,1:length(i)-2)]["minDownTime"]
+                m.ext[:parameters][:MUT][i]= d[SubString(i,1:length(i)-2)]["minUpTime"]
+                m.ext[:parameters][:MDT][i]= d[SubString(i,1:length(i)-2)]["minDownTime"]
                 m.ext[:parameters][:maxFrdelivarable][i]= d[SubString(i,1:length(i)-2)]["maxFrdelivarable"]
                 m.ext[:parameters][:notloadCost][i]= d[SubString(i,1:length(i)-2)]["notloadCost"]
             else
@@ -181,8 +181,8 @@ function process_parameters!(m::Model, data::Dict)
                m.ext[:parameters][:res_cost_g][i] =  d[SubString(i,1:length(i)-4)]["reserveCosts"]
                m.ext[:parameters][:inertia_Constant][i]= d[SubString(i,1:length(i)-4)]["innertiaCostant"]
                m.ext[:parameters][:startupCost][i]= d[SubString(i,1:length(i)-4)]["startupCost"]
-               m.ext[:parameters][:minUpTime][i]= d[SubString(i,1:length(i)-4)]["minUpTime"]
-               m.ext[:parameters][:minDownTime][i]= d[SubString(i,1:length(i)-4)]["minDownTime"]
+               m.ext[:parameters][:MUT][i]= d[SubString(i,1:length(i)-4)]["minUpTime"]
+               m.ext[:parameters][:MDT][i]= d[SubString(i,1:length(i)-4)]["minDownTime"]
                m.ext[:parameters][:maxFrdelivarable][i]= d[SubString(i,1:length(i)-4)]["maxFrdelivarable"]
                m.ext[:parameters][:notloadCost][i]= d[SubString(i,1:length(i)-4)]["notloadCost"]          
                else
@@ -206,10 +206,10 @@ function process_parameters!(m::Model, data::Dict)
    m.ext[:parameters][:inertia_Constant] = converted_dict_inertia_Constant
     converted_dict_startupCost = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:startupCost])
     m.ext[:parameters][:startupCost] = converted_dict_startupCost
-    converted_dict_minUpTime = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:minUpTime])
-    m.ext[:parameters][:minUpTime] = converted_dict_minUpTime
-    converted_dict_minDownTime = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:minDownTime])
-    m.ext[:parameters][:minDownTime] = converted_dict_minDownTime
+    converted_dict_minUpTime = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:MUT])
+    m.ext[:parameters][:MUT] = converted_dict_minUpTime
+    converted_dict_minDownTime = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:MDT])
+    m.ext[:parameters][:MDT] = converted_dict_minDownTime
     converted_dict_maxFrdelivarable = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:maxFrdelivarable])
     m.ext[:parameters][:maxFrdelivarable] = converted_dict_maxFrdelivarable
     converted_dict_notloadCost = Dict{String, Int64}(k => v for (k, v) in m.ext[:parameters][:notloadCost])
@@ -233,6 +233,8 @@ function process_parameters!(m::Model, data::Dict)
    m.ext[:parameters][:End_h_s] = Dict(i => d[SubString(i,1:length(i)-2)]["final_hydrogen_storage"] for i in ID_E) #final hydrogen storage in kg
    m.ext[:parameters][:Dte] = Dict(i => d[SubString(i,1:length(i)-2)]["deploymentTime"] for i in ID_E) #final hydrogen storage in kg
    m.ext[:parameters][:res_cost_e]= Dict(i => d[SubString(i,1:length(i)-2)]["reserveCosts"] for i in ID_E) #final hydrogen storage in kg
+   m.ext[:parameters][:start_up_cost_e] = Dict(i => d[SubString(i,1:length(i)-2)]["startupCost"] for i in ID_E) # Startu up cost of electrolyzers in Euros
+   m.ext[:parameters][:compresor_power] = Dict(i => d[SubString(i,1:length(i)-2)]["power_compressor"] for i in ID_E) # Power consumption of compressor in 
    
 
 
@@ -346,10 +348,10 @@ GminD =Dict(key => value / Pbase for (key, value) in GminD)
 startupCost=m.ext[:parameters][:startupCost]
 
 
-minUpTime=m.ext[:parameters][:minUpTime]
+MUT=m.ext[:parameters][:MUT]
 
 
-minDownTime=m.ext[:parameters][:minDownTime]
+MDT=m.ext[:parameters][:MDT]
 
 
 maxFrdelivarable=m.ext[:parameters][:maxFrdelivarable]
@@ -455,9 +457,12 @@ hfe= m.ext[:variables][:hfe] = @variable(m, [i=ID_E,j=J],lower_bound=0, upper_bo
 hfg = m.ext[:variables][:hfg] = @variable(m, [i=ID_E,j=J],lower_bound=-Max_h_f[i],upper_bound= Max_h_f[i],base_name="hfg") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
 hfsc = m.ext[:variables][:hfsc] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= Max_h_f[i],base_name="hfsc") #Hydrogen flow storage charging
 hfsd = m.ext[:variables][:hfsd] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= Max_h_f[i],base_name="hfsd") #Hydrogen flow storage discharging
-pe = m.ext[:variables][:pe] = @variable(m,  [i=ID_E,j=J],lower_bound= PEmin[i], upper_bound=PEmax[i], base_name="pe") #Power consumption electrolyzer
-hss = m.ext[:variables][:hss] = @variable(m, [i=ID_E,j=J],lower_bound=  Min_h_s[i], upper_bound= Max_h_s[i], base_name="hss") #hydrogen storage limit
+pe = m.ext[:variables][:pe] = @variable(m,  [i=ID_E,j=J], base_name="pe") #Power consumption electrolyzer
+hss = m.ext[:variables][:hss] = @variable(m, [i=ID_E,j=J],lower_bound=Min_h_s[i], upper_bound= Max_h_s[i], base_name="hss") #hydrogen storage limit
 
+zon_e = m.ext[:variables][:zon_e] = @variable(m, [i=ID_E,j=J], binary=true, base_name="E_commitment")
+zsb_e= m.ext[:variables][:zsb_e] = @variable(m, [i=ID_E,j=J], binary=true, base_name="E_stand")
+pe_s = m.ext[:variables][:pe_s] = @variable(m,  [i=ID_E,j=J], base_name="pe") #Power consumption electrolyzer standby
 
 
 
@@ -484,8 +489,12 @@ obj= m.ext[:objective] = @objective(m,Min, sum(g_costs)+sum(rg_costs)+sum(rb_cos
 )
 
 #Constraints (power balance)
+#con1=m.ext[:constraints][:con1] = @constraint(m, [j=J],
+#WC[j]*Installed_W+sum(g[i,j] for i in ID) -sum(pbc[i,j] for i in ID_BESS)+sum(pbd[i,j] for i in ID_BESS) == D[j]-SC[j]*Installed_S+sum(pe[i,j] for i in ID_E) 
+#)
+
 con1=m.ext[:constraints][:con1] = @constraint(m, [j=J],
-WC[j]*Installed_W+sum(g[i,j] for i in ID) -sum(pbc[i,j] for i in ID_BESS)+sum(pbd[i,j] for i in ID_BESS) == D[j]-SC[j]*Installed_S+sum(pe[i,j] for i in ID_E) 
+WC[j]*Installed_W+sum(g[i,j] for i in ID) -sum(pbc[i,j] for i in ID_BESS)+sum(pbd[i,j] for i in ID_BESS) == D[j]-SC[j]*Installed_S+sum(pe[i,j] for i in ID_E)+sum(pe_s[i,j] for i in ID_E) 
 )
 
 #Constraint upper bound generators power
@@ -503,9 +512,35 @@ con2_3=m.ext[:constraints][:con2_3] = @constraint(m, [i=ID,j=J[1]],1-zuc[i,j]+v[
 con2_4=m.ext[:constraints][:con2_4] = @constraint(m, [i=ID,j=J[2:end]],
 zuc[i,j-1]-zuc[i,j]+v[i,j]-w[i,j]==0
 )
+#On status constraint for nuclear
 con2_5=m.ext[:constraints][:con2_5] = @constraint(m, [i=ID_Nuclear,j=J],
 zuc[i,j]==1
 )
+
+#Minimum Down Time constraint
+con2_6 = m.ext[:constraints][:con2_6] = Dict()
+for i in ID
+   if MDT[i] > 0  # Only proceed if MDT[i] is positive
+       for j in J[MDT[i]:end]
+           con2_6[i,j] = @constraint(m,
+               1 - zuc[i,j] >= sum(w[i,j-jj] for jj in 0:MDT[i]-1)
+           )
+       end
+   end
+end
+
+#Minimum Up Time constraint
+con2_7 = m.ext[:constraints][:con2_7] = Dict()
+for i in ID
+   if MDT[i] > 0  # Only proceed if MUT[i] is positive
+       for j in J[MUT[i]:end]
+           con2_7[i,j] =  @constraint(m,
+           1-z[i,j] >= sum(w[i,j-jj] for jj in 0:MDT[i]-1)
+           )
+       end
+   end
+end
+
 
 
 #Constraint lost of generation
@@ -565,9 +600,19 @@ con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j+1]==I
 #con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j]==Ini_h_s[i])
 
 #Constraint charging-discharging of the hydrogen storage
-con13=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1:end-1]],hss[i,j+1]==hss[i,j]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
+con13=m.ext[:constraints][:con13] = @constraint(m, [i=ID_E,j=J[1:end-1]],hss[i,j+1]==hss[i,j]+hfsc[i,j]*heffc[i]-hfsd[i,j]/heffd[i])
 
+#Constraint_commitment electrolyzer
 
+con13_1=m.ext[:constraints][:con13_1] = @constraint(m, [i=ID_E,j=J],pe[i,j].<=PEmax[i]*zon_e[i,j])
+con13_2=m.ext[:constraints][:con13_2] = @constraint(m, [i=ID_E,j=J],pe[i,j].>=PEmin[i]*zon_e[i,j])
+
+#Power consumption in standby=5% of nominal power according to chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://arxiv.org/pdf/2306.10962
+con13_4=m.ext[:constraints][:con13_4] = @constraint(m, [i=ID_E,j=J],pe_s[i,j]==(PEmax[i]*0.05)*zsb_e[i,j]) 
+
+con13_5=m.ext[:constraints][:con13_5] = @constraint(m, [i=ID_E,j=J],
+zon_e[i,j]+zsb_e[i,j]<=1
+)
 
 
 #Constraint maximum frequency variation
@@ -669,6 +714,9 @@ hfsc= value.(m.ext[:variables][:hfsc])*Mbase
 hfsd= value.(m.ext[:variables][:hfsd])*Mbase
 hss= value.(m.ext[:variables][:hss])*Mbase
 zucvalues=  value.(m.ext[:variables][:zuc])
+zon_e_values=  value.(m.ext[:variables][:zon_e])
+zsb_e_values=  value.(m.ext[:variables][:zsb_e])
+pe_s= value.(m.ext[:variables][:pe_s])*Pbase
 
 
 
@@ -697,42 +745,29 @@ pw=WC*Installed_W*Pbase
 using StatsPlots
 p2 = groupedbar(transpose(gvec[:,:]),bar_position = :stack,label=permutedims(Ivec),legend=:outertopright);
 plot(p2, layout = (1,2), size=(500, 500))
+savefig(p2, "Produced_power_plot.png")
 p3 = groupedbar(transpose(rbvec[:,:]),bar_position = :stack,label=permutedims(Bvec),legend=:outertopright);
 plot(p3, layout = (1,2), size=(500, 500))
+savefig(p3, "BESS_reserve_plot.png")
 p4 = groupedbar(transpose(revec[:,:]),bar_position = :stack,label=permutedims(Evec),legend=:outertopright);
 plot(p4, layout = (1,2), size=(500, 500))
+savefig(p4, "Electrolyzer_Freserve_plot.png")
 # Plot the vectors
-plot(hfevec[1,:], label = "hfevec", lw = 2)
+p5= plot(hfevec[1,:], label = "hfevec", lw = 2)
 plot!(hfgvec[1,:], label = "hfgvec", lw = 2)
 plot!(hfscvec[1,:], label = "hfscvec", lw = 2)
 plot!(hfsdvec[1,:], label = "hfsdvec", lw = 2)
 plot!(hssvec[1,:], label = "hssvec", lw = 2)
 # Display the plot
 plot!()
-
-
-plot(hfscvec[1,:], label = "hfscvec", lw = 2)
-plot!(hfsdvec[1,:], label = "hfsdvec", lw = 2)
-plot!(hssvec[1,:], label = "hssvec", lw = 2)
-# Display the plot
-plot!()
-
-
-
-plot(pbcvec[1,:], label = "pbcvec", lw = 2)
-plot!(pbdvec[1,:], label = "pbdvec", lw = 2)
-plot!(ebvec[1,:], label = "ebvec", lw = 2)
-#plot!(D*Pbase, label = "D", lw = 2)
-#plot!(ps, label = "ps", lw = 2)
-#plot!(pw, label = "pw", lw = 2)
-plot!()
+savefig(p5, "Hydrogen_flows_plot.png")
 
 sum_reserve_g = vec(sum(rgvec, dims=1))
 sum_reserve_b = vec(sum(rbvec, dims=1))
 sum_reserve_e = vec(sum(revec, dims=1))
 total_reserve = sum_reserve_g + sum_reserve_b + sum_reserve_e
 
-p=bar(1:24, [sum_reserve_g sum_reserve_b sum_reserve_e],
+pr=bar(1:24, [sum_reserve_g sum_reserve_b sum_reserve_e],
     bar_width = 0.8,           # Ancho de las barras
     label = ["Reserve Generators" "Reserve BESS" "Reserve Electrolyzer"],  # Etiquetas para la leyenda
     fillcolor = [:red :green :blue],
@@ -745,24 +780,26 @@ p=bar(1:24, [sum_reserve_g sum_reserve_b sum_reserve_e],
     )           # Disposición del gráfico
 
 
-plot!(p, 1:24, plvec,
+plot!(pr, 1:24, plvec,
     label = "Loss of power",
     linewidth = 2,
     color = :purple,
     linestyle = :solid)
 
-plot!(p, 1:24, total_reserve,
+plot!(pr, 1:24, total_reserve,
 label = "Total reserve",
 linewidth = 2,
 color = :red,
 linestyle = :dash)
 
-display(p)
+display(pr)
+
+savefig(pr, "reserves_plot.png")
 
 
 
 
-plot(pbcvec[1,:], 
+p_bat=plot(pbcvec[1,:], 
      seriestype = :scatter,  # Use scatter instead of a line
      marker = :cross,        # Cross-shaped marker
      markersize = 3,         # Slightly smaller for a clean look
@@ -788,6 +825,9 @@ plot!(pbdvec[1,:],
 
 # Save the combined plot
 
+display(p_bat)
+savefig(p_bat, "BESS_power_energy_plot.png")
+
 Sum_Inertia_Vector=Dict()
 
 for j in J
@@ -805,7 +845,7 @@ p4=scatter(x_Inertia, y_Inertia,
     legend = false,
     markersize = 5
 )
-
+savefig(p4, "inertia_plot.png")
 
 
 
