@@ -1,0 +1,35 @@
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 10.0 (19045.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i9-12900H, instruction set [SSE2|AVX|AVX2]
+Thread count: 14 physical cores, 20 logical processors, using up to 20 threads
+
+
+Warning: excessive time spent in model updates.
+Consider calling update less frequently.
+
+Optimize a model with 55168 rows, 48840 columns and 3851602 nonzeros
+Model fingerprint: 0x2ec0cf39
+Model has 3216 quadratic constraints
+Variable types: 37752 continuous, 11088 integer (11088 binary)
+Coefficient statistics:
+  Matrix range     [4e-05, 3e+01]
+  QMatrix range    [1e+00, 1e+00]
+  Objective range  [1e+03, 5e+08]
+  Bounds range     [2e-03, 1e+00]
+  RHS range        [1e-15, 1e+00]
+
+MIP start from previous solve did not produce a new incumbent solution
+MIP start from previous solve violates constraint R39088 by 0.169290323
+
+Presolve removed 22458 rows and 14440 columns
+Presolve time: 0.46s
+
+Explored 0 nodes (0 simplex iterations) in 0.75 seconds (0.55 work units)
+Thread count was 1 (of 20 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+User-callback calls 67, time in user-callback 0.00 sec
