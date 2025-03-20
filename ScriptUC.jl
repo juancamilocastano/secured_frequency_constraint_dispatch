@@ -23,6 +23,13 @@ ts = CSV.read("Load_data.csv", DataFrame)
 capacity_factor_renewable=CSV.read("Capacity.csv", DataFrame)
 data_system_parameters = CSV.read("System_parameters.csv", DataFrame)
 
+output_file = joinpath(@__DIR__, "data.txt")
+
+# Open the file in write mode and save the data
+open(output_file, "w") do file
+    write(file, string(data))
+end
+
 ## Step 2: create model & pass data to model
 using JuMP
 using Ipopt
@@ -571,7 +578,7 @@ rb[i,j].<=PBmax[i]+pbc[i,j]-pbd[i,j]
 )
 
 #Constraint upper bound reserve provided by Electrolyzer
-con5=m.ext[:constraints][:con5] = @constraint(m, [i=ID_E,j=J],re[i,j].<=pe[i,j]-PEmin[i])
+con5=m.ext[:constraints][:con5] = @constraint(m, [i=ID_E,j=J],re[i,j].<=pe[i,j])
 
 #Constraint end energy value of the batteries
 con6=m.ext[:constraints][:con6] = @constraint(m, [i=ID_BESS,j=J[end]],End_e_b[i]-eb[i,j]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
