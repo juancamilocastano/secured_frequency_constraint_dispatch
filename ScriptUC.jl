@@ -447,8 +447,8 @@ x = m.ext[:variables][:x] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="x"
 y = m.ext[:variables][:y] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="y") #Auxiliary variable rotate second order cone
 z = m.ext[:variables][:z] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="z") #Auxiliary variable rotate second order cone
 rg = m.ext[:variables][:rg] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="rg") #Reserve provided by generators
-rb = m.ext[:variables][:rb] = @variable(m, [i=ID_BESS,j=J],lower_bound=0,base_name="rb") #Reserve provided by batteries
-re = m.ext[:variables][:re] = @variable(m, [i=ID_E,j=J],lower_bound=0, base_name="re") #REserve provided by electrolyzers
+rb = m.ext[:variables][:rb] = @variable(m, [i=ID_BESS,j=J],lower_bound=0, base_name="rb") #Reserve provided by batteries
+re = m.ext[:variables][:re] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound=0, base_name="re") #REserve provided by electrolyzers
 pl = m.ext[:variables][:pl] = @variable(m, [j=J],base_name="pl") #loss of generation
 pbc = m.ext[:variables][:pbc] = @variable(m, [i=ID_BESS,j=J],lower_bound=0,upper_bound=PBmax[i], base_name="pbc") #Charging power of the batteries
 pbd = m.ext[:variables][:pbd] = @variable(m, [i=ID_BESS,j=J],lower_bound=0,upper_bound=PBmax[i], base_name="pbd") #Discharging power of the batteries
@@ -463,7 +463,7 @@ hss = m.ext[:variables][:hss] = @variable(m, [i=ID_E,j=J],lower_bound=Min_h_s[i]
 
 zon_e = m.ext[:variables][:zon_e] = @variable(m, [i=ID_E,j=J], binary=true, base_name="E_commitment")
 zsb_e= m.ext[:variables][:zsb_e] = @variable(m, [i=ID_E,j=J], binary=true, base_name="E_stand")
-zsu_e= m.ext[:variables][:zsb_e] = @variable(m, [i=ID_E,j=J], binary=true, base_name="E_up")
+zsu_e= m.ext[:variables][:zsu_e] = @variable(m, [i=ID_E,j=J], binary=true, base_name="E_up")
 pe_s = m.ext[:variables][:pe_s] = @variable(m,  [i=ID_E,j=J], base_name="pe") #Power consumption electrolyzer standby
 pe_c= m.ext[:variables][:pe_c] = @variable(m,  [i=ID_E,j=J], base_name="pe_c") #Power consumption of compressor electrolyzer 
 
@@ -486,14 +486,12 @@ scu_UC=m.ext[:expressions][:scu_UC] = @expression(m, [i=ID,j=J], startupCost[i]*
 
 Escu_UC=m.ext[:expressions][:Escu_UC] = @expression(m, [i=ID_E,j=J], start_up_cost_e[i]*zon_e[i,j])
 
-CPE_costs=m.ext[:expressions][:CPE_costs] = @expression(m, [i=ID_E,j=J], pe_c[i,j]*compresor_power[i]*Pbase)
-
 Inertia_Expression=m.ext[:expressions][:Inertia_Expression] = @expression(m, [i=ID,j=J],Inertia_Vector[i]*zuc[i,j])
  
 
 #Create objective function
 
-obj= m.ext[:objective] = @objective(m,Min, sum(g_costs)+sum(rg_costs)+sum(rb_costs)+sum(re_costs)+sum(scu_UC)+sum(Escu_UC)+sum(CPE_costs)-sum(h_costs) #Objective function
+obj= m.ext[:objective] = @objective(m,Min, sum(g_costs)+sum(rg_costs)+sum(rb_costs)+sum(re_costs)+sum(scu_UC)+sum(Escu_UC)-sum(h_costs) #Objective function
 )
 
 #Constraints (power balance)
@@ -502,7 +500,7 @@ obj= m.ext[:objective] = @objective(m,Min, sum(g_costs)+sum(rg_costs)+sum(rb_cos
 #)
 
 con1=m.ext[:constraints][:con1] = @constraint(m, [j=J],
-WC[j]*Installed_W+sum(g[i,j] for i in ID) -sum(pbc[i,j] for i in ID_BESS)+sum(pbd[i,j] for i in ID_BESS) == D[j]-SC[j]*Installed_S+sum(pe[i,j] for i in ID_E)+sum(pe_s[i,j] for i in ID_E) 
+WC[j]*Installed_W+sum(g[i,j] for i in ID) -sum(pbc[i,j] for i in ID_BESS)+sum(pbd[i,j] for i in ID_BESS) == D[j]-SC[j]*Installed_S+sum(pe[i,j] for i in ID_E)+sum(pe_s[i,j] for i in ID_E) +sum(pe_c[i,j] for i in ID_E)
 )
 
 #Constraint upper bound generators power
@@ -514,9 +512,10 @@ con2_2=m.ext[:constraints][:con2_2] = @constraint(m, [i=ID,j=J],
 GminD[i]*zuc[i,j].<=g[i,j]+rg[i,j]
 )
 
-#Initial status generators
+#Initial status generators (unit commitment)
 con2_3=m.ext[:constraints][:con2_3] = @constraint(m, [i=ID,j=J[1]],1-zuc[i,j]+v[i,j]-w[i,j]==0)
 
+#Status generators (unit commitment)
 con2_4=m.ext[:constraints][:con2_4] = @constraint(m, [i=ID,j=J[2:end]],
 zuc[i,j-1]-zuc[i,j]+v[i,j]-w[i,j]==0
 )
@@ -622,6 +621,14 @@ con13_5=m.ext[:constraints][:con13_5] = @constraint(m, [i=ID_E,j=J],
 zon_e[i,j]+zsb_e[i,j]<=1
 )
 
+#Status constraints electrolyzer
+con13_6=m.ext[:constraints][:con13_6] = @constraint(m, [i=ID_E,j=J[1]],zsu_e[i,j].>=zon_e[i,j]-1+zsb_e[i,j]-0
+)
+
+con13_7=m.ext[:constraints][:con13_7] = @constraint(m, [i=ID_E,j=J[2:end]], 
+zsu_e[i,j].>=zon_e[i,j]-zon_e[i,j-1]+zsb_e[i,j]-zsb_e[i,j-1]
+)
+
 #Power consumption of the electrolyzer
 con13_8=m.ext[:constraints][:con13_8] = @constraint(m, [i=ID_E,j=J],pe_c[i,j]==compresor_power[i]*hfe[i,j])
 
@@ -659,7 +666,7 @@ for j in J
 end
 
 
-    #Constraint maximum frequency variation
+   #Constraints frequency nadir as rotate second order cone
    #con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO-sum(re[:,j])*Dte/(4*deltaf))*(sum(rb[:, j])/Dtb+(sum(rg[:, j])-rg[i, j])/Dtg).>=(pl[j]-sum(re[:, j]))^2/(4*deltaf))
    
    con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO-sum(re[:, j])*Dte/2)
@@ -687,17 +694,13 @@ for j in J
     end
  end
 
-
+#Constraints frequency nadir as rotate second order cone
  con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
  con14_2=m.ext[:constraints][:con14_2] = @constraint(m,[i=ID,j=J],z[i,j] ==(sum(rg[:, j])-rg[i, j])/Dtg)
  con14_3=m.ext[:constraints][:con14_3] = @constraint(m,[i=ID,j=J],[y[i,j]; z[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
 
  #constraints nadir occurrence time
-
- #constraints nadir occurrence time
-
  con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])-rg[i, j])*Dtb/Dtg)
-
  con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<=0.000001 + sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])-rg[i, j]))
 
  open("output_3.txt", "w") do file
@@ -727,7 +730,10 @@ hss= value.(m.ext[:variables][:hss])*Mbase
 zucvalues=  value.(m.ext[:variables][:zuc])
 zon_e_values=  value.(m.ext[:variables][:zon_e])
 zsb_e_values=  value.(m.ext[:variables][:zsb_e])
+zsu_e_values=  value.(m.ext[:variables][:zsu_e])
 pe_s= value.(m.ext[:variables][:pe_s])*Pbase
+pe_c= value.(m.ext[:variables][:pe_c])*Pbase
+
 
 
 

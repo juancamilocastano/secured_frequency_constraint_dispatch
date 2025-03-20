@@ -8,23 +8,23 @@ Warning: excessive time spent in model updates.
 Consider calling update less frequently.
 
 Optimize a model with 55168 rows, 48840 columns and 3851602 nonzeros
-Model fingerprint: 0x2ec0cf39
+Model fingerprint: 0x9faf536e
 Model has 3216 quadratic constraints
 Variable types: 37752 continuous, 11088 integer (11088 binary)
 Coefficient statistics:
   Matrix range     [4e-05, 3e+01]
   QMatrix range    [1e+00, 1e+00]
-  Objective range  [1e+03, 5e+08]
+  Objective range  [3e+02, 5e+08]
   Bounds range     [2e-03, 1e+00]
   RHS range        [1e-15, 1e+00]
 
 MIP start from previous solve did not produce a new incumbent solution
-MIP start from previous solve violates constraint R39088 by 0.169290323
+MIP start from previous solve violates constraint R39088 by 0.155526882
 
-Presolve removed 22458 rows and 14440 columns
-Presolve time: 0.46s
+Presolve removed 16030 rows and 16696 columns
+Presolve time: 0.75s
 
-Explored 0 nodes (0 simplex iterations) in 0.75 seconds (0.55 work units)
+Explored 0 nodes (0 simplex iterations) in 1.05 seconds (0.94 work units)
 Thread count was 1 (of 20 available processors)
 
 Solution count 0
@@ -32,4 +32,4 @@ Solution count 0
 Model is infeasible or unbounded
 Best objective -, best bound -, gap -
 
-User-callback calls 67, time in user-callback 0.00 sec
+User-callback calls 159, time in user-callback 0.00 sec
