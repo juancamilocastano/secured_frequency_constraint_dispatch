@@ -664,6 +664,9 @@ open("output_1.txt", "w") do file
     end
  end
 
+
+#=
+#Constraints nadir interval II
 for j in J
     for i in ID
        delete(m,m.ext[:constraints][:con14][i,j])
@@ -690,12 +693,21 @@ end
         opt_time = solve_time(m)
     end
  end
+ =#
 
+ #Constraints nadir interval III
 for j in J
     for i in ID
+      #=
+      #When running with 3 nadir intervals
        delete(m,m.ext[:constraints][:con14_1][i,j])
        delete(m,m.ext[:constraints][:con14_2][i,j])
        delete(m,m.ext[:constraints][:con14_3][i,j]) 
+       delete(m,m.ext[:constraints][:con15][i,j])
+       delete(m,m.ext[:constraints][:con16][i,j])
+      =#
+      #when running with 2 nadir intervals
+       delete(m,m.ext[:constraints][:con14][i,j])
        delete(m,m.ext[:constraints][:con15][i,j])
        delete(m,m.ext[:constraints][:con16][i,j])
     end
