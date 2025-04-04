@@ -1,0 +1,70 @@
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 10.0 (19045.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i9-12900H, instruction set [SSE2|AVX|AVX2]
+Thread count: 14 physical cores, 20 logical processors, using up to 20 threads
+
+Optimize a model with 37648 rows, 37752 columns and 2024678 nonzeros
+Model fingerprint: 0x33b63af1
+Model has 3216 quadratic constraints
+Variable types: 28104 continuous, 9648 integer (9648 binary)
+Coefficient statistics:
+  Matrix range     [9e-04, 3e+01]
+  QMatrix range    [9e-06, 3e-01]
+  Objective range  [1e+04, 1e+07]
+  Bounds range     [3e-05, 1e+00]
+  RHS range        [1e-14, 1e+00]
+Presolve removed 0 rows and 34 columns (presolve time = 7s) ...
+Presolve removed 22740 rows and 17280 columns (presolve time = 10s) ...
+Presolve removed 26696 rows and 20516 columns (presolve time = 15s) ...
+Presolve removed 37171 rows and 36991 columns
+Presolve time: 18.96s
+Presolved: 477 rows, 761 columns, 2386 nonzeros
+Presolved model has 24 quadratic constraint(s)
+Variable types: 761 continuous, 0 integer (0 binary)
+Root relaxation presolve time: 19.62s
+Root relaxation presolved: 525 rows, 809 columns, 2314 nonzeros
+Root relaxation presolved model has 24 second-order cone constraints
+Root barrier log...
+
+Ordering time: 0.00s
+
+Barrier statistics:
+ AA' NZ     : 1.889e+03
+ Factor NZ  : 5.794e+03 (roughly 1 MB of memory)
+ Factor Ops : 7.251e+04 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   6.42604423e+08 -7.67904963e+08  2.07e-01 1.99e+07  2.71e+06    20s
+   1   8.79909183e+07 -3.28714809e+08  9.63e-03 1.08e+06  2.82e+05    20s
+   2   6.17353806e+07 -6.50346683e+06  5.47e-06 1.17e+05  3.82e+04    20s
+   3   5.38169607e+07  4.42669576e+07  3.13e-09 1.01e+04  5.24e+03    20s
+   4   5.02696069e+07  4.88409498e+07  2.06e-10 1.08e+03  7.79e+02    20s
+   5   4.98988282e+07  4.95078148e+07  6.99e-11 2.28e+02  2.13e+02    20s
+   6   4.97530657e+07  4.96766003e+07  1.91e-11 1.72e+01  4.13e+01    20s
+   7   4.97029457e+07  4.96998373e+07  4.38e-13 1.89e-05  1.67e+00    20s
+   8   4.97011572e+07  4.97011371e+07  1.08e-12 2.98e-08  1.08e-02    20s
+   9   4.97011499e+07  4.97011499e+07  1.10e-13 2.98e-08  1.91e-05    20s
+  10   4.97011499e+07  4.97011499e+07  2.83e-13 2.98e-08  2.10e-08    20s
+
+Barrier solved model in 10 iterations and 19.63 seconds (42.91 work units)
+Optimal objective 4.97011499e+07
+
+
+Root relaxation: objective 4.970115e+07, 0 iterations, 0.01 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0    4.970115e+07 4.9701e+07  0.00%     -   19s
+
+Explored 1 nodes (0 simplex iterations) in 20.49 seconds (42.91 work units)
+Thread count was 20 (of 20 available processors)
+
+Solution count 1: 4.97011e+07 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 4.970114990789e+07, best bound 4.970114990789e+07, gap 0.0000%
+
+User-callback calls 3180, time in user-callback 0.00 sec

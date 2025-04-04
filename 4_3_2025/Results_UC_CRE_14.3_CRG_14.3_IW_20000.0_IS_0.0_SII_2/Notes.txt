@@ -1,0 +1,7 @@
+-In this simulation, the initial and final values of the energy of the battery were set at the same value to check if these boundary conditions
+affect the performance of the optimization problem.
+
+-Results show that it does not affect the performance of the optimization problem, but the BESS is not either charge or discharge. 
+
+-Next step:
+	-Do it with sun profile to see if batteries charge and discharge

@@ -1,0 +1,3 @@
+-It includes the ramping constraints and the binary variables of BESS
+-It works relatively well.
+-The next step is to modify the buffer of the hydrogen, add binary variables in order to use just binary variable for sharging and discharging

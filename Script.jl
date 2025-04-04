@@ -354,6 +354,11 @@ function build_model_interval_1!(m::Model)
    res_cost_b = m.ext[:parameters][:res_cost_b]
 
    # create variables 
+   zuc = m.ext[:variables][:zuc] = @variable(m, [i=ID,j=J], binary=true, base_name="commitment")
+   v = m.ext[:variables][:v] = @variable(m, [i=ID,j=J], binary=true, base_name="start_up")
+   w = m.ext[:variables][:w] = @variable(m, [i=ID,j=J], binary=true, base_name="shoot_down")
+   pe_c= m.ext[:variables][:pe_c] = @variable(m,  [i=ID_E,j=J], base_name="pe_c") #Power consumption of compressor electrolyzer 
+   
    g = m.ext[:variables][:g] = @variable(m, [i=ID,j=J],lower_bound=GminD[i], base_name="generation") #Power generation generators
    x = m.ext[:variables][:x] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="x") #Auxiliary variable rotate second order cone
    y = m.ext[:variables][:y] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="y") #Auxiliary variable rotate second order cone

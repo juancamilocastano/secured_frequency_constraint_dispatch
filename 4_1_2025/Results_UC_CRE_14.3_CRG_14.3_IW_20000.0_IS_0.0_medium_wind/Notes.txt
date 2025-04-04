@@ -1,0 +1,4 @@
+The idea here si to easy what happenes when there is a high wind profile, it is observed that the battery is charging and discharging at the same time
+to fit the ramp rates constraints.
+
+El siguiente paso es mirar que pasa aqui cuando se eliminan las restricciones de rampa

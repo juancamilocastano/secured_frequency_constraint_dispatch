@@ -1,0 +1,7 @@
+The idea here was adding the buffer and the binary variables for the charging and discharging flows of the pipeline. For some reason, it takes too much
+time and it does not finish to converge. There are 3 next steps to do:
+
+1- Check what happens when the Binary variable is removed
+2- Check what happens when the final energy storage condition of the battery is relaxed
+3- To implement the topologies without the pipeline connection
+4- To scale the objective function as Hakan sujested

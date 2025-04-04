@@ -1,0 +1,1 @@
+Here I decreased the efficiency of the storage to see that with this the model avoided to charge and discharge at the same time, but it kept doing it

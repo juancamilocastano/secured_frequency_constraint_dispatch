@@ -1,0 +1,4 @@
+In this code, the end conditions are not considered.
+
+aun asi, los resultados muestran que el EEBB se tiende a cargar y descargar al mismo tiempo, lo que parece indicar que lo que esta motivando esto
+no son las condiciones finales, pero la necesidad del sistema de absorver potencia extra generada por las termicas

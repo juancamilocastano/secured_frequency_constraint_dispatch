@@ -1,0 +1,87 @@
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 10.0 (19045.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i9-12900H, instruction set [SSE2|AVX|AVX2]
+Thread count: 14 physical cores, 20 logical processors, using up to 20 threads
+
+
+Warning: excessive time spent in model updates.
+Consider calling update less frequently.
+
+Optimize a model with 53728 rows, 47400 columns and 4302902 nonzeros
+Model fingerprint: 0x332eef70
+Model has 3216 quadratic constraints
+Variable types: 37752 continuous, 9648 integer (9648 binary)
+Coefficient statistics:
+  Matrix range     [2e-04, 3e+01]
+  QMatrix range    [1e+00, 1e+00]
+  Objective range  [1e+04, 1e+07]
+  Bounds range     [3e-05, 1e+00]
+  RHS range        [1e-14, 1e+00]
+
+MIP start from previous solve did not produce a new incumbent solution
+MIP start from previous solve violates constraint R37648 by 0.132335484
+
+Presolve removed 32980 rows and 28497 columns
+Presolve time: 3.98s
+Presolved: 20748 rows, 18903 columns, 1401558 nonzeros
+Presolved model has 3216 quadratic constraint(s)
+Variable types: 18903 continuous, 0 integer (0 binary)
+Root relaxation presolve time: 4.54s
+Root relaxation presolved: 23964 rows, 18903 columns, 1404774 nonzeros
+Root relaxation presolved model has 3216 second-order cone constraints
+Root barrier log...
+
+Ordering time: 0.55s
+
+Barrier statistics:
+ AA' NZ     : 5.913e+06
+ Factor NZ  : 8.100e+06 (roughly 80 MB of memory)
+ Factor Ops : 4.246e+09 (less than 1 second per iteration)
+ Threads    : 14
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   9.21705710e+09 -6.87255546e+08  9.73e+00 5.29e+06  1.81e+06     6s
+   1   2.49287846e+09 -1.39835198e+09  2.51e+00 3.36e+05  3.92e+05     6s
+   2   2.76980143e+08 -7.62805931e+08  2.27e-01 3.69e-01  4.70e+04     7s
+   3   8.23114448e+07 -2.68387470e+08  2.89e-02 6.07e-02  1.06e+04     7s
+   4   6.11007249e+07 -5.82004502e+07  9.37e-03 1.49e-02  3.16e+03     7s
+   5   4.90689273e+07  2.52390386e+07  3.01e-04 2.51e-03  5.72e+02     7s
+   6   4.73328981e+07  3.47680567e+07  1.47e-04 1.16e-03  3.01e+02     7s
+   7   4.54011509e+07  3.89465117e+07  7.09e-05 4.66e-04  1.55e+02     7s
+   8   4.44482960e+07  4.07256494e+07  4.82e-05 1.71e-04  8.90e+01     7s
+   9   4.40411006e+07  4.10588291e+07  3.35e-05 1.42e-04  7.14e+01     8s
+  10   4.38557438e+07  4.18705296e+07  2.16e-05 8.18e-05  4.75e+01     8s
+  11   4.33560803e+07  4.22595556e+07  6.24e-06 5.45e-05  2.63e+01     8s
+  12   4.32914160e+07  4.24441518e+07  4.05e-06 4.27e-05  2.03e+01     8s
+  13   4.31871201e+07  4.26412140e+07  1.08e-06 3.16e-05  1.31e+01     8s
+  14   4.31390543e+07  4.29375302e+07  4.37e-07 4.17e-05  4.84e+00     8s
+  15   4.31174444e+07  4.30715284e+07  1.68e-07 2.18e-05  1.10e+00     9s
+  16   4.31114408e+07  4.31019478e+07  5.49e-08 1.43e-06  2.27e-01     9s
+  17   4.31089840e+07  4.31082158e+07  1.63e-09 1.59e-07  1.84e-02     9s
+  18   4.31087968e+07  4.31087833e+07  5.62e-12 1.05e-06  3.25e-04     9s
+  19   4.31087955e+07  4.31087945e+07  7.00e-12 3.03e-05  2.43e-05    10s
+  20   4.31087954e+07  4.31087954e+07  9.01e-08 1.28e+01  1.67e-06    10s
+  21   4.31087954e+07  4.31087954e+07  1.17e-06 1.05e+02  1.21e-06    11s
+
+Barrier solved model in 21 iterations and 10.50 seconds (17.42 work units)
+Optimal objective 4.31087954e+07
+
+
+Root relaxation: objective 4.310880e+07, 0 iterations, 6.15 seconds (7.94 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0    4.310880e+07 4.3109e+07  0.00%     -   10s
+
+Explored 1 nodes (0 simplex iterations) in 10.59 seconds (17.52 work units)
+Thread count was 20 (of 20 available processors)
+
+Solution count 1: 4.31088e+07 
+
+Optimal solution found (tolerance 1.00e-04)
+Warning: max constraint violation (1.1701e-06) exceeds tolerance
+Best objective 4.310879541848e+07, best bound 4.310879541848e+07, gap 0.0000%
+
+User-callback calls 1968, time in user-callback 0.00 sec

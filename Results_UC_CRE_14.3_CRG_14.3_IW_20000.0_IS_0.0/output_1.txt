@@ -1,0 +1,47 @@
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 10.0 (19045.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i9-12900H, instruction set [SSE2|AVX|AVX2]
+Thread count: 14 physical cores, 20 logical processors, using up to 20 threads
+
+Optimize a model with 51168 rows, 40176 columns and 2062424 nonzeros
+Model fingerprint: 0x8451c326
+Model has 3216 quadratic constraints
+Variable types: 27168 continuous, 13008 integer (13008 binary)
+Coefficient statistics:
+  Matrix range     [9e-05, 3e+01]
+  QMatrix range    [9e-06, 3e-01]
+  Objective range  [1e+03, 1e+07]
+  Bounds range     [2e-04, 1e+00]
+  RHS range        [1e-14, 1e+00]
+Presolve removed 0 rows and 0 columns (presolve time = 7s) ...
+Presolve removed 33120 rows and 19272 columns (presolve time = 10s) ...
+Presolve removed 37138 rows and 22715 columns (presolve time = 15s) ...
+Presolve removed 43338 rows and 30365 columns
+Presolve time: 20.00s
+Presolved: 7830 rows, 9811 columns, 27683 nonzeros
+Presolved model has 24 quadratic constraint(s)
+Variable types: 7891 continuous, 1920 integer (1920 binary)
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    2.8468153e+07   1.038238e+00   0.000000e+00     21s
+    1528    4.2944863e+07   0.000000e+00   0.000000e+00     21s
+
+Root relaxation: objective 4.294486e+07, 1528 iterations, 0.02 seconds (0.03 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+H    0     0                    4.294486e+07 4.2945e+07  0.00%     -   20s
+*    0     0               0    4.294486e+07 4.2945e+07  0.00%     -   20s
+
+Explored 1 nodes (1528 simplex iterations) in 21.76 seconds (42.45 work units)
+Thread count was 20 (of 20 available processors)
+
+Solution count 1: 4.29449e+07 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 4.294486309010e+07, best bound 4.294486309001e+07, gap 0.0000%
+
+User-callback calls 3195, time in user-callback 0.00 sec

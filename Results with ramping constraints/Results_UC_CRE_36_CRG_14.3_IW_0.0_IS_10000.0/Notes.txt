@@ -1,0 +1,2 @@
+no tiene sentido que este cargando y descargando al final si no se esta procurando reserva. Tal vez hay muchas renovables. Se va a correr un modelo con
+curtailment

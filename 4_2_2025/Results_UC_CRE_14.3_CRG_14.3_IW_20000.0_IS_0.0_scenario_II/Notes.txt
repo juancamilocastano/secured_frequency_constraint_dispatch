@@ -1,0 +1,8 @@
+-It includes renewables curtailment
+-It includes on-off status of the battery
+-It ignores the end energy value of the battery
+-It doesn't consider the hydrogen pipeline
+-It considers the buffer
+
+-For the case without the pipeline, the model seems to work well. 
+	-Next step, to do it with more wind

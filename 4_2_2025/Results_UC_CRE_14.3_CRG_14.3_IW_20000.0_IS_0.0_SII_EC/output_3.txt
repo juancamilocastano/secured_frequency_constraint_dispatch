@@ -1,0 +1,47 @@
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 10.0 (19045.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i9-12900H, instruction set [SSE2|AVX|AVX2]
+Thread count: 14 physical cores, 20 logical processors, using up to 20 threads
+
+
+Warning: excessive time spent in model updates.
+Consider calling update less frequently.
+
+Optimize a model with 66288 rows, 48384 columns and 4337328 nonzeros
+Model fingerprint: 0x7a457cdc
+Model has 3216 quadratic constraints
+Variable types: 36816 continuous, 11568 integer (11568 binary)
+Coefficient statistics:
+  Matrix range     [2e-04, 3e+01]
+  QMatrix range    [1e+00, 1e+00]
+  Objective range  [1e+04, 1e+07]
+  Bounds range     [3e-05, 1e+00]
+  RHS range        [1e-14, 1e+00]
+
+MIP start from previous solve did not produce a new incumbent solution
+MIP start from previous solve violates constraint R50208 by 0.132335484
+
+Presolve removed 39671 rows and 23026 columns
+Presolve time: 4.08s
+Presolved: 26617 rows, 25358 columns, 1328969 nonzeros
+Presolved model has 3216 quadratic constraint(s)
+Variable types: 23438 continuous, 1920 integer (1920 binary)
+
+Use crossover to convert LP symmetric solution to basic solution...
+
+Root relaxation: objective 4.949227e+07, 7214 iterations, 0.45 seconds (0.71 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0    4.949227e+07 4.9492e+07  0.00%     -    4s
+
+Explored 1 nodes (7214 simplex iterations) in 4.99 seconds (10.36 work units)
+Thread count was 20 (of 20 available processors)
+
+Solution count 1: 4.94923e+07 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 4.949226507149e+07, best bound 4.949226507149e+07, gap 0.0000%
+
+User-callback calls 1573, time in user-callback 0.00 sec

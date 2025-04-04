@@ -1,0 +1,2 @@
+here, I realized that the minimun power consumption is too low. 
+I need to read what is the minimun power consumption before going to standby, and the power consumption in standby
