@@ -496,9 +496,8 @@ pbd = m.ext[:variables][:pbd] = @variable(m, [i=ID_BESS,j=J],lower_bound=0, base
 eb = m.ext[:variables][:eb] = @variable(m, [i=ID_BESS,j=J], lower_bound= EBmax[i]*(1-DOD_max[i]), upper_bound=EBmax[i] , base_name="eb") #Energy bounds of the batteries
 zb = m.ext[:variables][:zb] = @variable(m, [i=ID_BESS,j=J], binary=true, base_name="on_off_b")
 
-
 hfe= m.ext[:variables][:hfe] = @variable(m, [i=ID_E,j=J],lower_bound=0, upper_bound= Max_h_f[i], base_name="hfe") #Hydrogen flow limit of the hydrogen produced by electrolyzers
-hfgdinyec = m.ext[:variables][:hfgdinyec] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= Max_h_f[i],base_name="hfgdinyec") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
+hfgdinyec = m.ext[:variables][:hfgdinyec] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound=0,base_name="hfgdinyec") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
 hfgdcon= m.ext[:variables][:hfgdcon] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound=0,base_name="hfgdcon") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
 #zhf = m.ext[:variables][:zhf] = @variable(m, [i=ID_E,j=J], binary=true, base_name="on_off_b")
 ze = m.ext[:variables][:ze] = @variable(m, [i=ID_E,j=J], binary=true, base_name="on_off_E")
@@ -536,7 +535,7 @@ RE_costs=res_cost_e["E_500_1"]
 RG_costs=res_cost_g["CCGT_77"]
 Installed_W_F=Installed_W*Pbase
 Installed_S_F=Installed_S*Pbase
-folder_name_plot="Results_UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_S3"
+folder_name_plot="Results_UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_S2"
 mkdir(folder_name_plot)
 
 
@@ -698,22 +697,21 @@ hfgdcon[i,j].<=Max_h_f[i]*(1-zhf[i,j])
 
 
 #Constraint end hydrogen value of the hydrogen storage
-con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j]+hfe[i,j]-hfgdinyec[i,j]/heffc[i]+hfgdcon[i,j]*heffd[i])
+con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j]+hfe[i,j]-hfgdinyec[i,j]/heffc[i]+hfgdcon[i,j]*heffd[i]-Eload_factor[i]*PEmax[i]/(Eeff[i]))
 #con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j])
 
 
 #Constraint initial value of the hydrogen storage
-con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j+1]==Ini_h_s[i]+hfe[i,j]-hfgdinyec[i,j]/heffc[i]+hfgdcon[i,j]*heffd[i])
+con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j+1]==Ini_h_s[i]+hfe[i,j]-hfgdinyec[i,j]/heffc[i]+hfgdcon[i,j]*heffd[i]-Eload_factor[i]*PEmax[i]/(Eeff[i]))
 #con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j]==Ini_h_s[i])
 
 #Constraint charging-discharging of the hydrogen storage
-con13=m.ext[:constraints][:con13] = @constraint(m, [i=ID_E,j=J[1:end-1]],hss[i,j+1]==hss[i,j]+hfe[i,j]-hfgdinyec[i,j]/heffc[i]+hfgdcon[i,j]*heffd[i])
+con13=m.ext[:constraints][:con13] = @constraint(m, [i=ID_E,j=J[1:end-1]],hss[i,j+1]==hss[i,j]+hfe[i,j]-hfgdinyec[i,j]/heffc[i]+hfgdcon[i,j]*heffd[i]-Eload_factor[i]*PEmax[i]/(Eeff[i]))
 
 
 con13_1=m.ext[:constraints][:con13_1] = @constraint(m, [i=ID_E,j=J],pe[i,j].<=PEmax[i]*ze[i,j]+0.05*PEmax[i]*zestb[i,j])
 con13_2=m.ext[:constraints][:con13_2] = @constraint(m, [i=ID_E,j=J],pe[i,j].>=PEmin[i]*ze[i,j]+0.05*PEmax[i]*zestb[i,j])
 
-#Status constraint of electrolyzers
 con13_2_1=m.ext[:constraints][:con13_2_1] = @constraint(m, [i=ID_E,j=J[1]],zesu[i,j].>=ze[i,j]-1+(zestb[i,j]-0)
 ) #Startup constraint of electrolyzers
 con13_2_2=m.ext[:constraints][:con13_2_2] = @constraint(m, [i=ID_E,j=J[2:end]],zesu[i,j].>=(ze[i,j]-ze[i,j-1])+(zestb[i,j]-zestb[i,j-1])
@@ -860,6 +858,10 @@ pe_c= value.(m.ext[:variables][:pe_c])*Pbase
 wvalues=  value.(m.ext[:variables][:w])
 vvalues=  value.(m.ext[:variables][:v])
 RCU= value.(m.ext[:variables][:RCU])*Pbase
+ze= value.(m.ext[:variables][:ze])
+zesu= value.(m.ext[:variables][:zesu])
+zestb= value.(m.ext[:variables][:zestb])
+zb= value.(m.ext[:variables][:zb])
 
 
 

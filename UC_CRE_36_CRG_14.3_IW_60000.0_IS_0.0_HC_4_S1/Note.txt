@@ -1,0 +1,1 @@
+-Issue with battery charging and discharging at the same time

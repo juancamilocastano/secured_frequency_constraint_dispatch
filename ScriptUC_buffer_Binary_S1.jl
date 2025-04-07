@@ -37,7 +37,8 @@ using Gurobi
 
 
 m = Model(optimizer_with_attributes(Gurobi.Optimizer))
-
+#https://www.sciencedirect.com/science/article/pii/S0378779624005649 according to this paper, the tolerant gap is between 0.1% and 0.01%
+set_optimizer_attribute(m, "MIPGap", 0.001) 
 
 function define_sets!(m::Model, data::Dict, ts::DataFrame)
     #Step 2a: Create sets
@@ -482,23 +483,23 @@ res_cost_b = m.ext[:parameters][:res_cost_b]
 zuc = m.ext[:variables][:zuc] = @variable(m, [i=ID,j=J], binary=true, base_name="commitment")
 v = m.ext[:variables][:v] = @variable(m, [i=ID,j=J], binary=true, base_name="start_up")
 w = m.ext[:variables][:w] = @variable(m, [i=ID,j=J], binary=true, base_name="shoot_down")
-g = m.ext[:variables][:g] = @variable(m, [i=ID,j=J],lower_bound=GminD[i], base_name="generation") #Power generation generators
+g = m.ext[:variables][:g] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="generation") #Power generation generators
 x = m.ext[:variables][:x] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="x") #Auxiliary variable rotate second order cone
 y = m.ext[:variables][:y] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="y") #Auxiliary variable rotate second order cone
 z = m.ext[:variables][:z] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="z") #Auxiliary variable rotate second order cone
 rg = m.ext[:variables][:rg] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="rg") #Reserve provided by generators
 rb = m.ext[:variables][:rb] = @variable(m, [i=ID_BESS,j=J],lower_bound=0, base_name="rb") #Reserve provided by batteries
 re = m.ext[:variables][:re] = @variable(m, [i=ID_E,j=J],lower_bound=0, base_name="re") #REserve provided by electrolyzers
-pl = m.ext[:variables][:pl] = @variable(m, [j=J],base_name="pl") #loss of generation
+pl = m.ext[:variables][:pl] = @variable(m, [j=J],lower_bound=0,base_name="pl") #loss of generation
 RCU = m.ext[:variables][:RCU] = @variable(m, [j=J],lower_bound=0, base_name="RCU") #Renewable curtailment
 pbc = m.ext[:variables][:pbc] = @variable(m, [i=ID_BESS,j=J],lower_bound=0, base_name="pbc") #Charging power of the batteries
 pbd = m.ext[:variables][:pbd] = @variable(m, [i=ID_BESS,j=J],lower_bound=0, base_name="pbd") #Discharging power of the batteries
 eb = m.ext[:variables][:eb] = @variable(m, [i=ID_BESS,j=J], lower_bound= EBmax[i]*(1-DOD_max[i]), upper_bound=EBmax[i] , base_name="eb") #Energy bounds of the batteries
-zb = m.ext[:variables][:zb] = @variable(m, [i=ID_BESS,j=J], binary=true, base_name="on_off_b")
+#zb = m.ext[:variables][:zb] = @variable(m, [i=ID_BESS,j=J], binary=true, base_name="on_off_b")
 
 hfe= m.ext[:variables][:hfe] = @variable(m, [i=ID_E,j=J],lower_bound=0, upper_bound= Max_h_f[i], base_name="hfe") #Hydrogen flow limit of the hydrogen produced by electrolyzers
-hfgc = m.ext[:variables][:hfgc] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound=0,base_name="hfgc") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
-hfgd= m.ext[:variables][:hfgd] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound=0,base_name="hfgd") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
+hfgdinyec = m.ext[:variables][:hfgdinyec] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= Max_h_f[i],base_name="hfgdinyec") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
+hfgdcon= m.ext[:variables][:hfgdcon] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= Max_h_f[i],base_name="hfgdcon") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
 #zhf = m.ext[:variables][:zhf] = @variable(m, [i=ID_E,j=J], binary=true, base_name="on_off_b")
 ze = m.ext[:variables][:ze] = @variable(m, [i=ID_E,j=J], binary=true, base_name="on_off_E")
 zesu = m.ext[:variables][:zesu] = @variable(m, [i=ID_E,j=J], binary=true, base_name="on_off_E_startup")
@@ -506,7 +507,7 @@ zestb= m.ext[:variables][:zestb] = @variable(m, [i=ID_E,j=J], binary=true, base_
 
 
 
-pe = m.ext[:variables][:pe] = @variable(m,  [i=ID_E,j=J],lower_bound= PEmin[i], upper_bound=PEmax[i], base_name="pe") #Power consumption electrolyzer
+pe = m.ext[:variables][:pe] = @variable(m,  [i=ID_E,j=J],lower_bound= 0, upper_bound=PEmax[i], base_name="pe") #Power consumption electrolyzer
 pe_c= m.ext[:variables][:pe_c] = @variable(m,  [i=ID_E,j=J], base_name="pe_c") #Power consumption of compressor electrolyzer 
 hss = m.ext[:variables][:hss] = @variable(m, [i=ID_E,j=J],lower_bound=Min_h_s[i], upper_bound= Max_h_s[i], base_name="hss") #hydrogen storage limit
 
@@ -523,7 +524,7 @@ rb_costs=m.ext[:expressions][:rb_costs] = @expression(m, [i=ID_BESS,j=J],rb[i,j]
    )
 re_costs=m.ext[:expressions][:re_costs] = @expression(m, [i=ID_E,j=J],re[i,j]*res_cost_e[i]*Pbase
    )
-h_costs=m.ext[:expressions][:h_costs] = @expression(m, [i=ID_E,j=J],(hfgd[i,j]-hfgc[i,j])*hydrogenCost*Mbase
+h_costs=m.ext[:expressions][:h_costs] = @expression(m, [i=ID_E,j=J],(hfgdcon[i,j]-hfgdinyec[i,j])*hydrogenCost*Mbase
    )
 scu_UC=m.ext[:expressions][:scu_UC] = @expression(m, [i=ID,j=J], startupCost[i]*v[i,j])
 
@@ -535,7 +536,7 @@ RE_costs=res_cost_e["E_500_1"]
 RG_costs=res_cost_g["CCGT_77"]
 Installed_W_F=Installed_W*Pbase
 Installed_S_F=Installed_S*Pbase
-folder_name_plot="Results_UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)"
+folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_HC_$(hydrogenCost)_S1"
 mkdir(folder_name_plot)
 
 
@@ -544,7 +545,7 @@ Inertia_Expression=m.ext[:expressions][:Inertia_Expression] = @expression(m, [i=
 
 #Create objective function
 
-obj= m.ext[:objective] = @objective(m,Min, sum(g_costs)+sum(rg_costs)+sum(rb_costs)+sum(re_costs)+sum(scu_UC)+sum(h_costs)+sum(scu_UC_e) #Objective function
+obj= m.ext[:objective] = @objective(m,Min, (sum(g_costs)+sum(rg_costs)+sum(rb_costs)+sum(re_costs)+sum(scu_UC)+sum(h_costs)+sum(scu_UC_e)) #Objective function
 )
 
 
@@ -570,11 +571,11 @@ GminD[i]*zuc[i,j].<=g[i,j]+rg[i,j]
 )
 
 con2_1_1=m.ext[:constraints][:con2_1_1] = @constraint(m, [i=ID_BESS,j=J],
-pbc[i,j].<=PBmax[i]*zb[i,j]
+pbc[i,j].<=PBmax[i]
 )
 
 con2_1_2=m.ext[:constraints][:con2_1_2] = @constraint(m, [i=ID_BESS,j=J],
-pbd[i,j].<=PBmax[i]*(1-zb[i,j])
+pbd[i,j].<=PBmax[i]
 )
 
 
@@ -660,8 +661,10 @@ rb[i,j].<=PBmax[i]+pbc[i,j]-pbd[i,j]
 )
 
 #Constraint upper bound reserve provided by Electrolyzer
-con5=m.ext[:constraints][:con5] = @constraint(m, [i=ID_E,j=J],re[i,j].<=pe[i,j]-PEmin[i]
+con5=m.ext[:constraints][:con5] = @constraint(m, [i=ID_E,j=J],re[i,j].<=pe[i,j]-PEmin[i]*ze[i,j] 
 )
+
+
 
 #Constraint end energy value of the batteries
 con6=m.ext[:constraints][:con6] = @constraint(m, [i=ID_BESS,j=J[end]],End_e_b[i]-eb[i,j]==Beffc[i]*pbc[i,j]-pbd[i,j]/Beffd[i])
@@ -679,43 +682,39 @@ con8=m.ext[:constraints][:con8] = @constraint(m, [i=ID_BESS,j=J[1:end-1]],eb[i,j
 
 ##Constraint Electrolyzer
 #Constraint  hydrogen production electrolyzer
-con9=m.ext[:constraints][:con9] = @constraint(m, [i=ID_E,j=J],hfe[i,j]==pe[i,j]/Eeff[i]
+con9=m.ext[:constraints][:con9] = @constraint(m, [i=ID_E,j=J],hfe[i,j]==pe[i,j]/Eeff[i]-0.05*PEmax[i]/Eeff[i]*zestb[i,j]
 )
 
 
 #Hydrogen storage constraints
 
-#=
-con9_1=m.ext[:constraints][:con9_1] = @constraint(m, [i=ID_E,j=J],
-hfgc[i,j].<=Max_h_f[i]*zhf[i,j]
-)
 
-con9_2=m.ext[:constraints][:con9_2] = @constraint(m, [i=ID_E,j=J],
-hfgd[i,j].<=Max_h_f[i]*(1-zhf[i,j])
-)
-=#
 
 
 #Constraint end hydrogen value of the hydrogen storage
-con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j]+hfe[i,j]-hfgc[i,j]*heffc[i]+hfgd[i,j]/heffd[i]-Eload_factor[i]*PEmax[i]/(Eeff[i]))
+con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j]+hfe[i,j]-hfgdinyec[i,j]/heffc[i]+hfgdcon[i,j]*heffd[i]-Eload_factor[i]*PEmax[i]/(Eeff[i]))
 #con11=m.ext[:constraints][:con11] = @constraint(m, [i=ID_E,j=J[end]],End_h_s[i]==hss[i,j])
 
 
 #Constraint initial value of the hydrogen storage
-con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j+1]==Ini_h_s[i]+hfe[i,j]-hfgc[i,j]*heffc[i]+hfgd[i,j]/heffd[i]-Eload_factor[i]*PEmax[i]/(Eeff[i]))
+con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j+1]==Ini_h_s[i]+hfe[i,j]-hfgdinyec[i,j]/heffc[i]+hfgdcon[i,j]*heffd[i]-Eload_factor[i]*PEmax[i]/(Eeff[i]))
 #con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j]==Ini_h_s[i])
 
 #Constraint charging-discharging of the hydrogen storage
-con13=m.ext[:constraints][:con13] = @constraint(m, [i=ID_E,j=J[1:end-1]],hss[i,j+1]==hss[i,j]+hfe[i,j]-hfgc[i,j]*heffc[i]+hfgd[i,j]/heffd[i]-Eload_factor[i]*PEmax[i]/(Eeff[i]))
+con13=m.ext[:constraints][:con13] = @constraint(m, [i=ID_E,j=J[1:end-1]],hss[i,j+1]==hss[i,j]+hfe[i,j]-hfgdinyec[i,j]/heffc[i]+hfgdcon[i,j]*heffd[i]-Eload_factor[i]*PEmax[i]/(Eeff[i]))
 
 
 con13_1=m.ext[:constraints][:con13_1] = @constraint(m, [i=ID_E,j=J],pe[i,j].<=PEmax[i]*ze[i,j]+0.05*PEmax[i]*zestb[i,j])
 con13_2=m.ext[:constraints][:con13_2] = @constraint(m, [i=ID_E,j=J],pe[i,j].>=PEmin[i]*ze[i,j]+0.05*PEmax[i]*zestb[i,j])
 
 #Status constraint of electrolyzers
-con13_2_1=m.ext[:constraints][:con13_2_1] = @constraint(m, [i=ID_E,j=J[1]],zesu[i,j].<=ze[i,j]-1+(zestb[i,j]-0)) #Startup constraint of electrolyzers
-con13_2_2=m.ext[:constraints][:con13_2_2] = @constraint(m, [i=ID_E,j=J[2:end]],zesu[i,j].<=(ze[i,j]-ze[i,j-1])+(zestb[i,j]-zestb[i,j-1])) #Startup constraint of electrolyzers
-con13_2_3=m.ext[:constraints][:con13_2_3] = @constraint(m, [i=ID_E,j=J],zestb[i,j]+ze[i,j].<=1) #Standby constraint of electrolyzers
+con13_2_1=m.ext[:constraints][:con13_2_1] = @constraint(m, [i=ID_E,j=J[1]],zesu[i,j].>=ze[i,j]-1+(zestb[i,j]-0)
+) #Startup constraint of electrolyzers
+con13_2_2=m.ext[:constraints][:con13_2_2] = @constraint(m, [i=ID_E,j=J[2:end]],zesu[i,j].>=(ze[i,j]-ze[i,j-1])+(zestb[i,j]-zestb[i,j-1])
+) #Startup constraint of electrolyzers
+con13_2_3=m.ext[:constraints][:con13_2_3] = @constraint(m, [i=ID_E,j=J],zestb[i,j]+ze[i,j].<=1
+) #Standby constraint of electrolyzers
+#con13_2_4=m.ext[:constraints][:con13_2_4] = @constraint(m, [i=ID_E,j=J], ze[i,j]==0)
 #Power consumption in standby=5% of nominal power according to chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://arxiv.org/pdf/2306.10962
 
 
@@ -725,7 +724,7 @@ con13_2_3=m.ext[:constraints][:con13_2_3] = @constraint(m, [i=ID_E,j=J],zestb[i,
 
 
 #Power consumption of the electrolyzer
-con13_8=m.ext[:constraints][:con13_8] = @constraint(m, [i=ID_E,j=J],pe_c[i,j]==compresor_power[i]*(hfe[i,j]+hfgd[i,j]+hfgc[i,j]))
+con13_8=m.ext[:constraints][:con13_8] = @constraint(m, [i=ID_E,j=J],pe_c[i,j]==compresor_power[i]*(hfe[i,j]+hfgdcon[i,j]+hfgdinyec[i,j]))
 
 
 #Constraint maximum frequency variation
@@ -735,14 +734,14 @@ con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(Inertia_Exp
 
 con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=0)
 
-con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<= 0.00000000000001+sum(re[:, j])+sum(rb[:,j])*(Dte/Dtb)+(sum(rg[:, j])-rg[i, j])*Dte/Dtg)
+con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<= 0.00001+sum(re[:, j])+sum(rb[:,j])*(Dte/Dtb)+(sum(rg[:, j])-rg[i, j])*Dte/Dtg)
 
 #constraint ROCOF
 
 con17=m.ext[:constraints][:con17] = @constraint(m, [i=ID,j=J], pl[j]*FO/2 .<=rocofmax*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]))
 
 #QSS frequency constraint
-con18=m.ext[:constraints][:con18] = @constraint(m, [i=ID,j=J],pl[j].<=0.00000000000001+sum(re[:, j])+sum(rb[:, j])+(sum(rg[:, j])-rg[i, j]))
+con18=m.ext[:constraints][:con18] = @constraint(m, [i=ID,j=J],pl[j].<=0.00001+sum(re[:, j])+sum(rb[:, j])+(sum(rg[:, j])-rg[i, j]))
 
 
 
@@ -793,6 +792,7 @@ open(output_file_path, "w") do file
    end
 end
  =#
+ 
 Model_3_time=@elapsed begin
  #Constraints nadir interval III
 for j in J
@@ -836,6 +836,8 @@ end
 
 end
 
+
+
 Post_Processing_time = @elapsed begin
 
 
@@ -849,8 +851,8 @@ pbd= value.(m.ext[:variables][:pbd])*Pbase
 eb= value.(m.ext[:variables][:eb])*Pbase
 pe= value.(m.ext[:variables][:pe])*Pbase
 hfe= value.(m.ext[:variables][:hfe])*Mbase
-hfgc= value.(m.ext[:variables][:hfgc])*Mbase
-hfgd= value.(m.ext[:variables][:hfgd])*Mbase
+hfgdinyec= value.(m.ext[:variables][:hfgdinyec])*Mbase
+hfgdcon= value.(m.ext[:variables][:hfgdcon])*Mbase
 hss= value.(m.ext[:variables][:hss])*Mbase
 zucvalues=  value.(m.ext[:variables][:zuc])
 pe_c= value.(m.ext[:variables][:pe_c])*Pbase
@@ -860,7 +862,7 @@ RCU= value.(m.ext[:variables][:RCU])*Pbase
 ze= value.(m.ext[:variables][:ze])
 zesu= value.(m.ext[:variables][:zesu])
 zestb= value.(m.ext[:variables][:zestb])
-zb= value.(m.ext[:variables][:zb])
+#zb= value.(m.ext[:variables][:zb])
 
 
 
@@ -880,8 +882,8 @@ pbcvec = [pbc[i,j] for  i in ID_BESS, j in J]
 pbdvec = [pbd[i,j] for  i in ID_BESS, j in J]
 ebvec = [eb[i,j] for  i in ID_BESS, j in J]
 hfevec = [hfe[i,j] for  i in ID_E, j in J]
-hfgcvec = [hfgc[i,j] for  i in ID_E, j in J]
-hfgdvec = [hfgd[i,j] for  i in ID_E, j in J]
+hfgdinyecvec = [hfgdinyec[i,j] for  i in ID_E, j in J]
+hfgdconvec = [hfgdcon[i,j] for  i in ID_E, j in J]
 hssvec = [hss[i,j] for  i in ID_E, j in J]
 HDvec = [HD[i] for  i in ID_E, j in J]
 plvec= [pl[j] for j in J]
@@ -889,6 +891,9 @@ RCUvec = [RCU[j] for j in J]
 zucvector = [zucvalues[i,j] for i in ID, j in J]
 wvector = [wvalues[i,j] for i in ID, j in J]
 vvector = [vvalues[i,j] for i in ID, j in J]
+zevector= [ze[i,j] for i in ID_E, j in J]
+zesuvector=[zesu[i,j] for i in ID_E, j in J]
+zestbvector=[zestb[i,j] for i in ID_E, j in J]
 ps=SC*Installed_S*Pbase
 pw=WC*Installed_W*Pbase
 
@@ -932,25 +937,25 @@ plot(p_re, layout = (1,2), size=(500, 500))
 
 
 
-p_h_storage = plot(hfgcvec[1,:], 
+p_h_storage = plot(hfgdinyecvec[1,:], 
      legend = :outerright,
      linewidth = 2,
      color = :blue,
      title = "Stored hydrogen and hydrogen storage flows", 
      xlabel = "Time [H]", 
      ylabel = "Mass flow [Kg/h], Mass [Kg]", 
-     label = "hfgcvec",
-     ylims = (0, maximum([maximum(hfgcvec[1,:]), maximum(hssvec[1,:]), maximum(hfgdvec[1,:])]) + 10))  # Added ylims
+     label = "hfgdinyecvec",
+     ylims = (0, maximum([maximum(hfgdinyecvec[1,:]), maximum(hssvec[1,:]), maximum(hfgdconvec[1,:])]) + 10))  # Added ylims
 
 plot!(hssvec[1,:],
       linewidth = 2,
       color = :red,
       label = "hssvec")
 
-plot!(hfgdvec[1,:], 
+plot!(hfgdconvec[1,:], 
       linewidth = 2,
       color = :orange,
-      label = "hfgdvec")
+      label = "hfgdconvec")
 
 
 
@@ -961,8 +966,8 @@ savefig(p_h_storage, save_path)
 
 # Plot the vectors
 p_HF = plot(hfevec[1,:], label = "hfevec", lw = 2)
-plot!(hfgcvec[1,:], label = "hfgcvec", lw = 2)
-plot!(hfgdvec[1,:], label = "hfgdvec", lw = 2)
+plot!(hfgdinyecvec[1,:], label = "hfgdinyecvec", lw = 2)
+plot!(hfgdconvec[1,:], label = "hfgdconvec", lw = 2)
 plot!(hssvec[1,:], label = "hssvec", lw = 2)
 plot!(HDvec[1, :], 
 color = :red, 
@@ -1124,15 +1129,35 @@ savefig(P_D_W_S_N, save_path)
 
 end
 
+OU_v=sum(zucvector', dims=2)
+online_units=bar(OU_v, 
+    xlabel="Hours",                     # Eje X
+    ylabel="Number of online units",    # Eje Y
+    title="Online units at each hour",  # Título
+    legend=false,                       # Sin leyenda
+    bar_width=0.8,                     # Ancho de las barras
+    size=(500, 300))                    # Tamaño del gráfico
+display(online_units)
+# Guardar el gráfico (opcional)
+save_path = joinpath(folder_name_plot, "Online_units.png")
+savefig(online_units, save_path)
+
 
 #Making file with the computing time
 output_file_path = joinpath(folder_name_plot, "Computing_time.txt")
 # Ensure the folder exists (optional, but recommended)
 mkpath(folder_name_plot)
 # Use output_file_path in open
+
 open(output_file_path, "w") do file
     write(file, "Computing time model 1= $(string(Model_1_time)), Computing time model 3= $(string(Model_3_time)), Post processing time= $(string(Post_Processing_time))")  # Convert to string and write
 end
+
+#=
+open(output_file_path, "w") do file
+   write(file, "Computing time model 1= $(string(Model_1_time)), Post processing time= $(string(Post_Processing_time))")  # Convert to string and write
+end
+=#
 
 
 

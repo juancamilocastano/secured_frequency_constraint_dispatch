@@ -66,10 +66,10 @@ dispatchableGenerators:
 
 variableGenerators:
  Solar:
-  installedCapacity: 0 # MW
+  installedCapacity: 60000 # MW
  
  Wind:
-  installedCapacity: 60000 # MW
+  installedCapacity: 0 # MW
 
 
 
