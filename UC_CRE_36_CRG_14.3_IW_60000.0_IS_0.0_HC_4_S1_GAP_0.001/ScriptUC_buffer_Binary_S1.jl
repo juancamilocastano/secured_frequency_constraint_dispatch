@@ -38,7 +38,7 @@ using Gurobi
 
 m = Model(optimizer_with_attributes(Gurobi.Optimizer))
 #https://www.sciencedirect.com/science/article/pii/S0378779624005649 according to this paper, the tolerant gap is between 0.1% and 0.01%
-set_optimizer_attribute(m, "MIPGap", 0.0005) 
+set_optimizer_attribute(m, "MIPGap", 0.001) 
 
 function define_sets!(m::Model, data::Dict, ts::DataFrame)
     #Step 2a: Create sets

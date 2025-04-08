@@ -1,0 +1,3 @@
+-It is observed that the batteries charge close when the sun generation is high and discharge when the demand reaches its peak.
+-The hydrogen storage inyect hydrogen to the grid when the solar generation is high.
+-It is strange that the generators are procured instead of the electrolyzer
