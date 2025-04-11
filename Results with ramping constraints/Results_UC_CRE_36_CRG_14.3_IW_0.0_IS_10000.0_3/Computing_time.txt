@@ -1,1 +1,0 @@
-Computing time model 1= 25.674409, Computing time model 3= 334.3273918, Post processing time= 1.6980102

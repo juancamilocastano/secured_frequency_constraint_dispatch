@@ -1,6 +1,0 @@
--In this model I included the on off status of the batteries and the renewable curtailment.
--The BESS are not charging and discharging at the same time but the hydrogen inyecs and consumes hydrogen at the same time.
-
--The next step is to modify the configurations that for one with a buffer in order to eliminate the charging and discharging variables
-
--It does not include the ramping constraints

@@ -1,9 +1,0 @@
-This simulation is done by considering the new ramp rates that I found in this document
-chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.agora-energiewende.org/fileadmin/Projekte/2017/Flexibility_in_thermal_plants/115_flexibility-report-WEB.pdf
-
-The complet ramp up rate constraint was considered (the constraints taken from hakan's course)
-
--The idea is to see if with this flexibility, the solver doesn't promote charging and discharging ESS at the same time anymore.
-	The solver still promote charging and discharging, we need to keep with the relaxed formulation
-
--Next step would be including the binary variables of electrolyzers

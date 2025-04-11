@@ -1,1 +1,0 @@
--I reduced the gap to 0.0008 but the final result shows a bigger gap

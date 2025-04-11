@@ -95,6 +95,7 @@ function process_time_series_data!(m::Model, ts::DataFrame)
     m.ext[:timeseries][:D] = ts.Load_typical_winter[1:number_hours]
     m.ext[:timeseries][:SC] =  capacity_factor_renewable.Solar_Capacity_Factor[1:number_hours]
     m.ext[:timeseries][:WC] =  capacity_factor_renewable.Wind_Capacity_Factor[1:number_hours]
+    m.ext[:timeseries][:HVC] = capacity_factor_renewable.Hydrogen_variable[1:number_hours]
     return m
 end
 
@@ -355,6 +356,7 @@ D= m.ext[:timeseries][:D]/Pbase
 #Extrac capacity factor renewable
 SC= m.ext[:timeseries][:SC]
 WC= m.ext[:timeseries][:WC] #data taken from https://researchdata.reading.ac.uk/191/?utm_source=chatgpt.com
+HVC= m.ext[:timeseries][:HVC] 
 Installed_S = m.ext[:parameters][:Installed_S]/Pbase
 Installed_W = m.ext[:parameters][:Installed_W]/Pbase
 
@@ -414,6 +416,9 @@ Max_h_s =Dict(key => value /Mbase  for (key, value) in  Max_h_s)
 
 PEmax = m.ext[:parameters][:PEmax]
 PEmax=Dict(key => value / Pbase for (key, value) in PEmax)
+
+maxFrdelivarable=m.ext[:parameters][:maxFrdelivarable]
+maxFrdelivarable=Dict(key => value / Pbase for (key, value) in maxFrdelivarable)
 
 PEmin = m.ext[:parameters][:PEmin]
 PEmin = Dict(key=> value / Pbase for(key,value) in PEmin)
@@ -487,7 +492,7 @@ g = m.ext[:variables][:g] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="ge
 x = m.ext[:variables][:x] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="x") #Auxiliary variable rotate second order cone
 y = m.ext[:variables][:y] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="y") #Auxiliary variable rotate second order cone
 z = m.ext[:variables][:z] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="z") #Auxiliary variable rotate second order cone
-rg = m.ext[:variables][:rg] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="rg") #Reserve provided by generators
+rg = m.ext[:variables][:rg] = @variable(m, [i=ID,j=J],lower_bound=0,upper_bound=maxFrdelivarable[i], base_name="rg") #Reserve provided by generators
 rb = m.ext[:variables][:rb] = @variable(m, [i=ID_BESS,j=J],lower_bound=0, base_name="rb") #Reserve provided by batteries
 re = m.ext[:variables][:re] = @variable(m, [i=ID_E,j=J],lower_bound=0, base_name="re") #REserve provided by electrolyzers
 pl = m.ext[:variables][:pl] = @variable(m, [j=J],lower_bound=0,base_name="pl") #loss of generation
@@ -498,8 +503,8 @@ eb = m.ext[:variables][:eb] = @variable(m, [i=ID_BESS,j=J], lower_bound= EBmax[i
 zb = m.ext[:variables][:zb] = @variable(m, [i=ID_BESS,j=J], binary=true, base_name="on_off_b")
 
 hfe= m.ext[:variables][:hfe] = @variable(m, [i=ID_E,j=J],lower_bound=0, upper_bound= Max_h_f[i], base_name="hfe") #Hydrogen flow limit of the hydrogen produced by electrolyzers
-hfgdinyec = m.ext[:variables][:hfgdinyec] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= Max_h_f[i],base_name="hfgdinyec") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
-hfgdcon= m.ext[:variables][:hfgdcon] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= Max_h_f[i],base_name="hfgdcon") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
+hfgdinyec = m.ext[:variables][:hfgdinyec] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound=0,base_name="hfgdinyec") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
+hfgdcon= m.ext[:variables][:hfgdcon] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound=0,base_name="hfgdcon") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
 #zhf = m.ext[:variables][:zhf] = @variable(m, [i=ID_E,j=J], binary=true, base_name="on_off_b")
 ze = m.ext[:variables][:ze] = @variable(m, [i=ID_E,j=J], binary=true, base_name="on_off_E")
 zesu = m.ext[:variables][:zesu] = @variable(m, [i=ID_E,j=J], binary=true, base_name="on_off_E_startup")
@@ -536,7 +541,7 @@ RE_costs=res_cost_e["E_500_1"]
 RG_costs=res_cost_g["CCGT_77"]
 Installed_W_F=Installed_W*Pbase
 Installed_S_F=Installed_S*Pbase
-folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_HC_$(hydrogenCost)_S1"
+folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_HC_$(hydrogenCost)_S2"
 mkdir(folder_name_plot)
 
 
@@ -580,9 +585,10 @@ pbd[i,j].<=PBmax[i]*(1-zb[i,j])
 
 
 
+
 con2_2_a = m.ext[:constraints][:con2_2_a] = @constraint(m, [i=ID,j=J[2:end]],
-g[i,j] +rg[i,j]- g[i,j-1] <= upramprate[i]
-)
+g[i,j] +rg[i,j]- g[i,j-1] <= upramprate[i] ) # constraint taken from Mathematical Programming for Power Systems Operation
+
 con2_2_b = m.ext[:constraints][:con2_2_b] = @constraint(m, [i=ID,j=J[2:end]],
 g[i,j-1] - g[i,j] <= downramprate[i] )
 
@@ -991,6 +997,24 @@ plot!(xlabel = "Time [h]",
 
 display(p_HF)
 
+for i in 1:20
+p_HF_11 = plot(hfevec[i,:], label = "hfevec", lw = 2)
+plot!(hfgdinyecvec[i,:], label = "hfgdinyecvec", lw = 2)
+plot!(hfgdconvec[i,:], label = "hfgdconvec", lw = 2)
+plot!(hssvec[i,:], label = "hssvec", lw = 2)
+plot!(HDvec[i, :], 
+color = :red, 
+seriestype = :scatter, 
+markershape = :circle,
+label = "HD")
+
+plot!(xlabel = "Time [h]",
+      ylabel = "Hydrogen mass [kg] ",
+      legend = :outertopright,
+      title = "Hourly Hydrogen mass flow electrolyzer $i")
+
+display(p_HF_11)
+end
 
 
 

@@ -1,1 +1,0 @@
-all these results are wrong because the status constraints of electrolyzers were with the wrong symbol

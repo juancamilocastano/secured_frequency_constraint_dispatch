@@ -1,2 +1,0 @@
-in this code, the value of the reserve provided by the battery is higher. Still, it charges and discharges at the same time. Just the battery cost was
-modified

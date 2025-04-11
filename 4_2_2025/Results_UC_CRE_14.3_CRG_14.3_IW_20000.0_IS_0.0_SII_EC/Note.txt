@@ -1,7 +1,0 @@
-- The final energy constraint is set
-
--not issues
-
--It does not include the off/on stastus of the electrolyzer
-
--Next step: including binary variables on/off electrolyzer

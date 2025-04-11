@@ -2,7 +2,7 @@
 valueOfLostLoad: 1000 # EUR / MWh
 CO2Price: 25 # EUR / ton
 timeStepLength: 1 # hrs
-hydrogenCost: 4 # EUR/kg
+hydrogenCost: 3.42 #£/kg #(4 EUR/kg)
 deltaf: 0.8 # Hz
 FO: 50 # Hz
 rocofmax: 0.8 # beteween 0.25hz/s and 2.5 hz/s https://www.sciencedirect.com/science/article/pii/S0200544220308835
@@ -22,7 +22,7 @@ dispatchableGenerators:
   innertiaCostant: 5 # s
   maxFrdelivarable: 0 # 
   deploymentTime: 15 # s
-  reserveCosts: 14.3 #Fast frequency reserve cost EUR,h/MWr
+  reserveCosts: 12.23 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
   upramprate: 0 # MW/h #https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8466038
   downramprate: 0 # MW/h
   
@@ -41,7 +41,7 @@ dispatchableGenerators:
   innertiaCostant: 4 # s
   maxFrdelivarable: 50 # 
   deploymentTime: 15 # s
-  reserveCosts: 14.3 #Fast frequency reserve cost EUR,h/MW
+  reserveCosts: 12.23 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
   upramprate: 1200 # MW/h #https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8466038
   downramprate: 1200 # MW/h chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.agora-energiewende.org/fileadmin/Projekte/2017/Flexibility_in_thermal_plants/115_flexibility-report-WEB.pdf
 
@@ -59,17 +59,17 @@ dispatchableGenerators:
   innertiaCostant: 4 # s
   maxFrdelivarable: 20 # 
   deploymentTime: 15 # s
-  reserveCosts: 14.3 #Fast frequency reserve cost EUR,h/MW
+  reserveCosts: 12.23 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
   upramprate: 720 # MW/h
   downramprate: 720 # MW/h
   
 
 variableGenerators:
  Solar:
-  installedCapacity: 60000 # MW
+  installedCapacity: 0 # MW
  
  Wind:
-  installedCapacity: 0 # MW
+  installedCapacity: 40000 # MW
 
 
 
@@ -83,7 +83,7 @@ BESS:
   Einit: 145 # MWh, starting value state of charge -> e_0
   Efinal: 145 # MWh, starting value state of charge -> e_J
   deploymentTime: 0.2 # s
-  reserveCosts: 14.3 # Frequency containment reserve cost EUR,h/MW
+  reserveCosts: 12.23 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)
 
 
 
@@ -91,19 +91,19 @@ Electrolyzer:
   E_100:
     installed_capacity: 100   # MW
     numberOfUnits: 8   # number of units
-    minimun_consumption: 10  # MW
+    minimun_consumption: 10  # MW 10% of the installed capacity taken from https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9369115
     efficiency: 0.058   # Mwh/kg
     load_factor_electrolyzer: 0.8 # MW, this needs to be modified to have different load factors for the different electrolyzers
     max_hydrogen_flow: 1724.13  # kg
-    max_hydrogen_storage: 41379.31034 # kg
+    max_hydrogen_storage: 41379.31034 # kg assumption made based on Cost benefits of optimizing hydrogen storage and methanation capacities for Power-to-Gas plants in dynamic operation, if 10 MW electrolyzer is used, the storage capacity is between 100-3000 kg.
     min_hydrogen_storage: 431.03448275862 # kg
     initial_hydrogen_storage: 8275.86 # kg
     final_hydrogen_storage: 8275.86 # kg
     deploymentTime: 0.2 # s
-    reserveCosts: 14.3 # Frequency containment reserve cost EUR,h/MW
+    reserveCosts: 12.23 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)
     effc: 0.9 # Charge Efficiency
     effd: 0.9 # Discharge Efficiency
-    startupCost: 1000 # Euros taken from Electrolyzer Scheduling for Nordic FCR Services
+    startupCost:  855.5 #£ #1000  Euros taken from Electrolyzer Scheduling for Nordic FCR Services
     power_compressor: 0.00167 # MWh/kg
   
      
@@ -119,10 +119,10 @@ Electrolyzer:
     initial_hydrogen_storage: 16551.72 # kg
     final_hydrogen_storage: 16551.72 # kg
     deploymentTime: 0.2 # s
-    reserveCosts: 14.3 # Frequency containment reserve cost EUR,h/MW
+    reserveCosts: 12.23 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)W
     effc: 0.9 # Charge Efficiency
     effd: 0.9 # Discharge Efficiency
-    startupCost: 1000 # Euros
+    startupCost:  855.5 #£ #1000  Euros
     power_compressor: 0.00167 # MWh/kg
 
   E_500:
@@ -137,10 +137,10 @@ Electrolyzer:
     initial_hydrogen_storage: 41379.31 # kg
     final_hydrogen_storage: 41379.31 # kg
     deploymentTime: 0.2 # s
-    reserveCosts: 14.3 # Frequency containment reserve cost EUR,h/MW
+    reserveCosts: 12.23 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)W
     effc: 0.9 # Charge Efficiency
     effd: 0.9 # Discharge Efficiency
-    startupCost: 1000 # Euros
+    startupCost:  855.5 #£ #1000  Euros
     power_compressor: 0.00167 # MWh/kg
 
 

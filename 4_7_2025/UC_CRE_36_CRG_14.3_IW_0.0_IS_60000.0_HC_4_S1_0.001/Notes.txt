@@ -1,6 +1,0 @@
--Here, the objective function is multiplied by 0.001 and the gap is set= 0.05 in the function
--Lower bound is modified alowwing turning off generators
-	*g = m.ext[:variables][:g] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="generation") #Power generation generators
--Next steps:
-	*Changing the scale of the objective function
-	*adding wind profile

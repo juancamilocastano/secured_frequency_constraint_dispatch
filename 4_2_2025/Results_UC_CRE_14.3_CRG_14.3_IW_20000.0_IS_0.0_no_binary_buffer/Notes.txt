@@ -1,1 +1,0 @@
-The idea here is to see what happens with the problem that does not include binary variables for charging and discharging of the hydrogen buffer
