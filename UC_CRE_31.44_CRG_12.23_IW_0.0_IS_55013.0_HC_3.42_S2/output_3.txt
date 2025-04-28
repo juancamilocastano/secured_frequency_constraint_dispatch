@@ -1,0 +1,33 @@
+Set parameter Username
+Academic license - for non-commercial use only - expires 2025-12-04
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 10.0 (19045.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i9-12900H, instruction set [SSE2|AVX|AVX2]
+Thread count: 14 physical cores, 20 logical processors, using up to 20 threads
+
+
+Warning: excessive time spent in model updates.
+Consider calling update less frequently.
+
+Optimize a model with 70705 rows, 50088 columns and 4394720 nonzeros
+Model fingerprint: 0x433c58da
+Model has 3240 quadratic constraints
+Variable types: 37056 continuous, 13032 integer (13032 binary)
+Coefficient statistics:
+  Matrix range     [9e-05, 3e+01]
+  QMatrix range    [1e+00, 1e+00]
+  Objective range  [9e+02, 1e+07]
+  Bounds range     [3e-04, 1e+00]
+  RHS range        [1e-06, 1e+00]
+Presolve removed 7085 rows and 5196 columns
+Presolve time: 0.72s
+
+Explored 0 nodes (0 simplex iterations) in 0.76 seconds (0.51 work units)
+Thread count was 1 (of 20 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+User-callback calls 61, time in user-callback 0.00 sec

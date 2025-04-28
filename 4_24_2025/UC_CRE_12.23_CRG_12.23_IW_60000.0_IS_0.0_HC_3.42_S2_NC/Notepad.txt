@@ -1,0 +1,1 @@
+-Las variables binarias del estatus del electrolizador no hacen mayor diferencia en el tiempo que le toma al algoritmo resolver el problema

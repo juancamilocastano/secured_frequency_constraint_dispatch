@@ -1,0 +1,53 @@
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 10.0 (19045.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i9-12900H, instruction set [SSE2|AVX|AVX2]
+Thread count: 14 physical cores, 20 logical processors, using up to 20 threads
+
+
+Warning: excessive time spent in model updates.
+Consider calling update less frequently.
+
+Optimize a model with 70801 rows, 50088 columns and 4394912 nonzeros
+Model fingerprint: 0x00f6e6a7
+Model has 3240 quadratic constraints
+Variable types: 37056 continuous, 13032 integer (13032 binary)
+Coefficient statistics:
+  Matrix range     [9e-05, 3e+01]
+  QMatrix range    [1e+00, 1e+00]
+  Objective range  [9e+02, 1e+07]
+  Bounds range     [3e-04, 3e+01]
+  RHS range        [1e-06, 1e+00]
+
+MIP start from previous solve did not produce a new incumbent solution
+MIP start from previous solve violates constraint R54577 by 0.108037129
+
+Presolve removed 38319 rows and 20000 columns (presolve time = 5s) ...
+Presolve removed 44607 rows and 25894 columns
+Presolve time: 5.65s
+Presolved: 26194 rows, 24194 columns, 97524 nonzeros
+Variable types: 12053 continuous, 12141 integer (12140 binary)
+Found heuristic solution: objective 4.386098e+07
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    1.6934400e+06   3.212076e+01   0.000000e+00      6s
+   11313    3.6042634e+07   0.000000e+00   0.000000e+00      7s
+
+Root relaxation: objective 3.604263e+07, 11313 iterations, 0.62 seconds (1.25 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 3.6043e+07    0   13 4.3861e+07 3.6043e+07  17.8%     -    7s
+H    0     0                    3.604569e+07 3.6043e+07  0.01%     -    7s
+
+Explored 1 nodes (13564 simplex iterations) in 7.14 seconds (8.35 work units)
+Thread count was 20 (of 20 available processors)
+
+Solution count 2: 3.60457e+07 4.3861e+07 
+
+Optimal solution found (tolerance 1.00e-03)
+Best objective 3.604568863931e+07, best bound 3.604263363931e+07, gap 0.0085%
+
+User-callback calls 1428, time in user-callback 0.00 sec

@@ -1,0 +1,54 @@
+Gurobi Optimizer version 11.0.0 build v11.0.0rc2 (win64 - Windows 10.0 (19045.2))
+
+CPU model: 12th Gen Intel(R) Core(TM) i9-12900H, instruction set [SSE2|AVX|AVX2]
+Thread count: 14 physical cores, 20 logical processors, using up to 20 threads
+
+
+Warning: excessive time spent in model updates.
+Consider calling update less frequently.
+
+Optimize a model with 70705 rows, 50088 columns and 4394720 nonzeros
+Model fingerprint: 0xb138bd23
+Model has 3240 quadratic constraints
+Variable types: 37056 continuous, 13032 integer (13032 binary)
+Coefficient statistics:
+  Matrix range     [9e-05, 3e+01]
+  QMatrix range    [1e+00, 1e+00]
+  Objective range  [9e+02, 1e+07]
+  Bounds range     [3e-04, 3e+01]
+  RHS range        [1e-06, 1e+00]
+
+MIP start from previous solve did not produce a new incumbent solution
+MIP start from previous solve violates constraint R54481 by 0.131097774
+
+Presolve removed 33144 rows and 15024 columns (presolve time = 5s) ...
+Presolve removed 44415 rows and 25901 columns
+Presolve time: 6.08s
+Presolved: 26290 rows, 24187 columns, 97801 nonzeros
+Variable types: 12046 continuous, 12141 integer (12140 binary)
+Found heuristic solution: objective 4.927785e+07
+Found heuristic solution: objective 4.924495e+07
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    1.3440000e+06   3.317693e+01   0.000000e+00      7s
+   14028    4.2784876e+07   0.000000e+00   0.000000e+00      7s
+
+Root relaxation: objective 4.278488e+07, 14028 iterations, 0.87 seconds (1.95 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 4.2785e+07    0  123 4.9245e+07 4.2785e+07  13.1%     -    7s
+H    0     0                    4.279250e+07 4.2785e+07  0.02%     -    7s
+
+Explored 1 nodes (14597 simplex iterations) in 7.62 seconds (8.78 work units)
+Thread count was 20 (of 20 available processors)
+
+Solution count 3: 4.27925e+07 4.9245e+07 4.92779e+07 
+
+Optimal solution found (tolerance 1.00e-03)
+Best objective 4.279250267563e+07, best bound 4.278487568669e+07, gap 0.0178%
+
+User-callback calls 1476, time in user-callback 0.00 sec

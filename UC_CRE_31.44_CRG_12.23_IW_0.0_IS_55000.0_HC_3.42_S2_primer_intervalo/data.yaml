@@ -1,0 +1,203 @@
+# Number of units per type needs to be less than 10!
+valueOfLostLoad: 1000 # EUR / MWh
+CO2Price: 25 # EUR / ton
+timeStepLength: 1 # hrs
+hydrogenCost: 3.42 #£/kg #(4 EUR/kg)
+deltaf: 0.8 # Hz
+FO: 50 # Hz
+rocofmax: 0.8 # beteween 0.25hz/s and 2.5 hz/s https://www.sciencedirect.com/science/article/pii/S0200544220308835
+#costfcr=12.23 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
+#costFFR=31.44 #£/MW,h  # (36 frequency reserve cost EUR,h/MWr)
+
+dispatchableGenerators:
+ Nuclear:
+  numberOfUnits: 4 # number of units
+  maxPowerOutput: 1800 # MW
+  minStableOperatingPoint: 1400 # MW
+  notloadCost: 0
+  marginalcost: 10 #£/MWh
+  startupCost: 0  # £
+  startupTime: 0 # hours
+  minUpTime: 24 # hours
+  minDownTime: 0 # hours
+  innertiaCostant: 5 # s
+  maxFrdelivarable: 36 # 
+  deploymentTime: 15 # s
+  reserveCosts: 12.23 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
+  upramprate: 0 # MW/h #https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8466038
+  downramprate: 0 # MW/h
+  Emax: 0  # MWh 
+  DODmax: 0 # corresponds to considering that the energy of the reservoir includes the minimun volume of the reservoir and that the power plant needs 650 Mwh to keep providing reserve during 15 minutes
+  effc: 0 # Charge Efficiency
+  effd: 0 # Discharge Efficiency
+  Einit: 0 # MWh, starting value state of charge -> e_0
+  Efinal: 0 # MWh, starting value state of charge -> e_J
+  
+# MWh of primary fuel per MW of installed capacity
+
+ CCGT:
+  numberOfUnits: 100 # number of units
+  maxPowerOutput: 500 # MW
+  minStableOperatingPoint: 250 # MW
+  notloadCost: 4500
+  marginalcost: 47 #£/MWh
+  startupCost: 10000 # £
+  startupTime: 1 # hours
+  minUpTime: 4 # hours
+  minDownTime: 4 # hours
+  innertiaCostant: 4 # s
+  maxFrdelivarable: 50 # 
+  deploymentTime: 15 # s
+  reserveCosts: 12.23 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
+  upramprate: 1200 # MW/h #https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8466038
+  downramprate: 1200 # MW/h chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://www.agora-energiewende.org/fileadmin/Projekte/2017/Flexibility_in_thermal_plants/115_flexibility-report-WEB.pdf
+  Emax: 0  # MWh 
+  DODmax: 0 # corresponds to considering that the energy of the reservoir includes the minimun volume of the reservoir and that the power plant needs 650 Mwh to keep providing reserve during 15 minutes
+  effc: 0 # Charge Efficiency
+  effd: 0 # Discharge Efficiency
+  Einit: 0 # MWh, starting value state of charge -> e_0
+  Efinal: 0 # MWh, starting value state of charge -> e_J
+
+ OCGT:
+  numberOfUnits: 30 # number of units
+  maxPowerOutput: 100 # MW
+  minStableOperatingPoint: 50  # MW
+  notloadCost: 3000
+  marginalcost: 200 #£/MWh
+  startupCost: 0 # £
+  startupTime: 0 # hours
+  minUpTime: 0 # hours
+  minDownTime: 0 # hours
+  innertiaCostant: 4 # s
+  maxFrdelivarable: 20 # 
+  deploymentTime: 15 # s
+  reserveCosts: 12.23 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
+  upramprate: 720 # MW/h
+  downramprate: 720 # MW/h
+  Emax: 0  # MWh 
+  DODmax: 0 # corresponds to considering that the energy of the reservoir includes the minimun volume of the reservoir and that the power plant needs 650 Mwh to keep providing reserve during 15 minutes
+  effc: 0 # Charge Efficiency
+  effd: 0 # Discharge Efficiency
+  Einit: 0 # MWh, starting value state of charge -> e_0
+  Efinal: 0 # MWh, starting value state of charge -> e_J
+
+Pump:
+  numberOfUnits: 1 # number of units
+  maxPowerOutput: 2600 # MW
+  minStableOperatingPointC: 0  # assumed
+  minStableOperatingPointD: 0 # assumed
+  notloadCost: 0 #Assumed, there is not information
+  marginalcost: 0 #£/MWh
+  startupCost: 0 # £
+  startupTime: 0 # hours
+  minUpTime: 0 # hours
+  minDownTime: 0 # hours
+  innertiaCostant: 3.75 # s
+  maxFrdelivarable: 26 # 
+  deploymentTime: 15 # s
+  reserveCosts: 12.23 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
+  upramprate: 2600 # MW/h
+  downramprate: 2600 # MW/h
+  Emax: 10000  # MWh 
+  DODmax: 0.935 # corresponds to considering that the energy of the reservoir includes the minimun volume of the reservoir and that the power plant needs 650 Mwh to keep providing reserve during 15 minutes
+  effc: 0.75 # Charge Efficiency
+  effd: 0.75 # Discharge Efficiency
+  Einit: 3000 # MWh, starting value state of charge -> e_0
+  Efinal: 1000 # MWh, starting value state of charge -> e_J
+
+  
+
+
+  
+  
+
+  
+
+variableGenerators:
+ Solar:
+  installedCapacity: 55000 # MW
+ 
+ Wind:
+  installedCapacity: 0 # MW
+
+
+
+
+
+BESS:
+  NumberOfUnits: 80 # number of units
+  Pmax: 300 # MW 
+  Emax: 700 # MWh 
+  DODmax: 0.793 # corresponds to considering DOD_max=0.9 + 0.207 which is the required energy to keep providing reserve during 15 minutes
+  effc: 0.9 # Charge Efficiency
+  effd: 0.9 # Discharge Efficiency
+  Einit: 145 # MWh, starting value state of charge -> e_0
+  Efinal: 145 # MWh, starting value state of charge -> e_J
+  deploymentTime: 0.2 # s
+  reserveCosts: 31.44 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)
+
+
+
+Electrolyzer:
+  E_100:
+    installed_capacity: 100   # MW
+    numberOfUnits: 8   # number of units
+    minimun_consumption: 10  # MW 10% of the installed capacity taken from https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9369115
+    efficiency: 0.058   # Mwh/kg
+    load_factor_electrolyzer: 0.8 # MW, this needs to be modified to have different load factors for the different electrolyzers
+    max_hydrogen_flow: 1724.13  # kg
+    max_hydrogen_storage: 41379.31034 # kg assumption made based on Cost benefits of optimizing hydrogen storage and methanation capacities for Power-to-Gas plants in dynamic operation, if 10 MW electrolyzer is used, the storage capacity is between 100-3000 kg.
+    min_hydrogen_storage: 431.03448275862 # kg
+    initial_hydrogen_storage: 8275.86 # kg
+    final_hydrogen_storage: 8275.86 # kg
+    deploymentTime: 0.2 # s
+    reserveCosts: 31.44 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)
+    effc: 0.9 # Charge Efficiency
+    effd: 0.9 # Discharge Efficiency
+    startupCost:  855.5 #£ #1000  Euros taken from Electrolyzer Scheduling for Nordic FCR Services
+    power_compressor: 0.00167 # MWh/kg
+  
+     
+  E_200:
+    installed_capacity: 200  # MW
+    numberOfUnits: 6   # number of units
+    minimun_consumption: 20  # MW
+    efficiency: 0.058   # Mwh/kg
+    load_factor_electrolyzer: 0.83  # MW
+    max_hydrogen_flow: 3448.27  # kg
+    max_hydrogen_storage: 82758.62 # kg
+    min_hydrogen_storage: 862.07 # kg
+    initial_hydrogen_storage: 16551.72 # kg
+    final_hydrogen_storage: 16551.72 # kg
+    deploymentTime: 0.2 # s
+    reserveCosts: 31.44 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)W
+    effc: 0.9 # Charge Efficiency
+    effd: 0.9 # Discharge Efficiency
+    startupCost:  855.5 #£ #1000  Euros
+    power_compressor: 0.00167 # MWh/kg
+
+  E_500:
+    installed_capacity: 500  # MW
+    numberOfUnits: 6  # number of units
+    minimun_consumption: 50  # MW
+    efficiency: 0.058   # Mwh/kg
+    load_factor_electrolyzer: 0.9  # MW
+    max_hydrogen_flow: 8620.68  # kg
+    max_hydrogen_storage: 206896.55 # kg
+    min_hydrogen_storage: 2155.17 # kg
+    initial_hydrogen_storage: 41379.31 # kg
+    final_hydrogen_storage: 41379.31 # kg
+    deploymentTime: 0.2 # s
+    reserveCosts: 31.44 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)W
+    effc: 0.9 # Charge Efficiency
+    effd: 0.9 # Discharge Efficiency
+    startupCost:  855.5 #£ #1000  Euros
+    power_compressor: 0.00167 # MWh/kg
+
+
+
+
+      
+       
+     
+    
