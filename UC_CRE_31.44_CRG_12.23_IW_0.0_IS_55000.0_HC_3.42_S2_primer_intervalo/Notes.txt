@@ -1,2 +1,0 @@
--Script corriendo solo el primer intervalo, resultados tienen logica. El problema es que cuando corro el tercer intervalo, este no converge.
-	-Siguientes paso: correr con diferentes valores de energia final e inicial
