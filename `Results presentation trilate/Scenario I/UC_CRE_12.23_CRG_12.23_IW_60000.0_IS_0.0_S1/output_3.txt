@@ -19,11 +19,10 @@ Coefficient statistics:
   Objective range  [9e+02, 1e+07]
   Bounds range     [3e-04, 1e+00]
   RHS range        [1e-06, 1e+00]
-Presolve removed 16918 rows and 7734 columns (presolve time = 5s) ...
-Presolve removed 17578 rows and 7958 columns (presolve time = 10s) ...
-Presolve removed 18582 rows and 8401 columns (presolve time = 15s) ...
+Presolve removed 17578 rows and 7958 columns (presolve time = 5s) ...
+Presolve removed 17726 rows and 8305 columns (presolve time = 10s) ...
 Presolve removed 21609 rows and 11428 columns
-Presolve time: 18.49s
+Presolve time: 13.83s
 Presolved: 49029 rows, 38591 columns, 1897370 nonzeros
 Presolved model has 3217 quadratic constraint(s)
 Variable types: 26379 continuous, 12212 integer (12164 binary)
@@ -32,7 +31,7 @@ Showing barrier log only...
 
 Root barrier log...
 
-Ordering time: 0.01s
+Ordering time: 0.00s
 
 Barrier statistics:
  AA' NZ     : 1.217e+04
@@ -42,53 +41,52 @@ Barrier statistics:
 
                   Objective                Residual
 Iter       Primal          Dual         Primal    Dual     Compl     Time
-   0   3.30688484e+09 -9.16358774e+09  6.86e+00 1.41e+07  4.98e+07    20s
-   1   7.37019554e+08 -9.14681497e+09  8.40e-01 6.06e+06  1.05e+07    20s
-   2   9.44916709e+07 -2.46988713e+09  4.54e-02 4.92e-07  1.07e+06    20s
+   0   3.30688484e+09 -9.16358774e+09  6.86e+00 1.41e+07  4.98e+07    15s
+   1   7.37019554e+08 -9.14681497e+09  8.40e-01 6.06e+06  1.05e+07    15s
+   2   9.44916709e+07 -2.46988713e+09  4.54e-02 4.92e-07  1.07e+06    15s
 
-Barrier performed 2 iterations in 20.11 seconds (18.07 work units)
+Barrier performed 2 iterations in 14.75 seconds (18.07 work units)
 Barrier solve interrupted - model solved by another algorithm
 
-Concurrent spin time: 0.01s
+Concurrent spin time: 0.00s
 
 Solved with dual simplex
 
 Root simplex log...
 
 Iteration    Objective       Primal Inf.    Dual Inf.      Time
-     683    3.5056305e+07   0.000000e+00   0.000000e+00     20s
+     683    3.5056305e+07   0.000000e+00   0.000000e+00     15s
 
 Use crossover to convert LP symmetric solution to basic solution...
 
 Root crossover log...
 
-     769 DPushes remaining with DInf 0.0000000e+00                20s
-       0 DPushes remaining with DInf 0.0000000e+00                20s
+       0 DPushes remaining with DInf 0.0000000e+00                15s
 
-    2933 PPushes remaining with PInf 0.0000000e+00                20s
-       0 PPushes remaining with PInf 0.0000000e+00                21s
+    2933 PPushes remaining with PInf 0.0000000e+00                15s
+       0 PPushes remaining with PInf 0.0000000e+00                15s
 
-  Push phase complete: Pinf 0.0000000e+00, Dinf 4.7966054e-08     21s
+  Push phase complete: Pinf 0.0000000e+00, Dinf 4.7966054e-08     15s
 
 
 Root simplex log...
 
 Iteration    Objective       Primal Inf.    Dual Inf.      Time
-    4388    3.5056305e+07   0.000000e+00   0.000000e+00     21s
-    4410    3.5056305e+07   0.000000e+00   0.000000e+00     21s
+    4388    3.5056305e+07   0.000000e+00   0.000000e+00     15s
+    4388    3.5056305e+07   0.000000e+00   2.624676e+07     15s
+    4410    3.5056305e+07   0.000000e+00   0.000000e+00     15s
 Extra simplex iterations after uncrush: 22
 
-Root relaxation: objective 3.505631e+07, 4410 iterations, 1.84 seconds (1.38 work units)
-Total elapsed time = 25.99s (DegenMoves)
+Root relaxation: objective 3.505631e+07, 4410 iterations, 1.08 seconds (1.38 work units)
 
     Nodes    |    Current Node    |     Objective Bounds      |     Work
  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
 
-     0     0 3.5056e+07    0  368          - 3.5056e+07      -     -   28s
-     0     0 3.5056e+07    0  332          - 3.5056e+07      -     -   40s
-H    0     0                    3.505821e+07 3.5056e+07  0.01%     -   41s
+     0     0 3.5056e+07    0  368          - 3.5056e+07      -     -   18s
+     0     0 3.5056e+07    0  332          - 3.5056e+07      -     -   22s
+H    0     0                    3.505821e+07 3.5056e+07  0.01%     -   23s
 
-Explored 1 nodes (6540 simplex iterations) in 42.01 seconds (31.61 work units)
+Explored 1 nodes (6540 simplex iterations) in 23.42 seconds (31.61 work units)
 Thread count was 20 (of 20 available processors)
 
 Solution count 1: 3.50582e+07 
@@ -96,4 +94,4 @@ Solution count 1: 3.50582e+07
 Optimal solution found (tolerance 1.00e-04)
 Best objective 3.505821131116e+07, best bound 3.505630532820e+07, gap 0.0054%
 
-User-callback calls 3674, time in user-callback 0.01 sec
+User-callback calls 2102, time in user-callback 0.00 sec

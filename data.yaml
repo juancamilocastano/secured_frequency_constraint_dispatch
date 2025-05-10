@@ -123,7 +123,7 @@ variableGenerators:
 
 
 
-
+# total installed capacity of BESS reference https://www.gov.uk/government/publications/clean-power-2030-action-plan 
 BESS:
   NumberOfUnits: 80 # number of units
   Pmax: 300 # MW 
@@ -137,6 +137,7 @@ BESS:
   reserveCosts: 12.23 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)
 
 
+#total installed capacity for electrolyzers page 4->chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://assets.publishing.service.gov.uk/media/6662f36b716b14967fe341e1/hydrogen-production-delivery-roadmap-2023.pdf
 
 Electrolyzer:
   E_100:

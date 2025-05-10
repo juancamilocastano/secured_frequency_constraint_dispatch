@@ -1106,6 +1106,7 @@ Penervector= [Pener[i,j] for i in ID_Pump, j in J]
 rgpvector= [rgp[i,j] for i in ID_Pump, j in J]
 ps=SC*Installed_S*Pbase
 pw=WC*Installed_W*Pbase
+pe_cvec= [pe_c[i,j] for  i in ID_E, j in J]
 
 
 
@@ -1120,7 +1121,7 @@ display(P_curtailment)
 
 p_generators = groupedbar(transpose(gvec[:,:]),
     bar_position = :stack,
-    label = permutedims(Ivec),
+    label = permutedims(ID),
     legend = :outertopright,
     xlabel = "Time [h]",
     ylabel = "Power [MW]",
@@ -1359,6 +1360,28 @@ p_inertia=scatter(x_Inertia, y_Inertia,
 save_path = joinpath(folder_name_plot, "inertia_plot.png")
 savefig(p_inertia, save_path)
 
+Sum_Inertia_Vector_energy=Dict()
+
+for j in J
+   Sum_Inertia_Vector_energy[j]=sum(Inertia_Vector[i]*value.(zuc[i,j])*Pbase/1000 for i in ID)+ PInertia_Vector["Pump_1"]*value.(zpcommit["Pump_1",j])*Pbase/1000
+end
+
+
+
+x_Inertia_energy = collect(keys(Sum_Inertia_Vector_energy))
+y_Inertia_energy = collect(values(Sum_Inertia_Vector_energy))
+
+# Create scatter plot
+p_inertia_energy=scatter(x_Inertia_energy, y_Inertia_energy, 
+    title = "Total Inertia vs Time",
+    xlabel = "Time[h]",
+    ylabel = "Total sum of system's inertia [GWs]",
+    legend = false,
+    markersize = 5,
+    ylims = (0, maximum(y_Inertia_energy)+100)
+)
+save_path = joinpath(folder_name_plot, "inertia_plot_energy.png")
+savefig(p_inertia_energy, save_path)
 
 
 
@@ -1397,6 +1420,42 @@ save_path = joinpath(folder_name_plot, "Demand_renewables.png")
 savefig(P_D_W_S_N, save_path)
 
 end
+
+Total_Demand_Electro_storage=(D'*Pbase+sum(pevec, dims=1)+sum(pbcvec, dims=1)+sum(Ppcvector, dims=1)+sum(pe_cvec, dims=1))'
+
+P_D_W_S_N_all=plot(Total_Demand_Electro_storage, 
+      linewidth = 2,
+      color = :red,
+     title = "Demand_all, wind and solar generation", 
+     xlabel = "Time [H]", 
+     ylabel = "Power [MW]", 
+     label = "Demand")
+
+plot!(ps,
+linewidth = 2,
+color = :green,
+label = "Solar"
+)
+
+# Add pbdvec[1,:] to the same plot with a different cross style
+plot!(pw, 
+linewidth = 2,
+color = :blue,
+label = "Wind"
+)
+
+plot!(Total_Demand_Electro_storage-ps-pw, 
+linewidth = 2,
+color = :orange,
+label = "Net demand all"
+)
+# Save the combined plot
+
+display(P_D_W_S_N_all)
+
+save_path = joinpath(folder_name_plot, "Total_Demand_renewables.png")
+savefig(P_D_W_S_N_all, save_path)
+
 
 OU_v=sum(zucvector', dims=2)
 online_units=bar(OU_v, 
@@ -1442,6 +1501,12 @@ results = Dict("g" => g,
                "costs_scu_UC_e" => sum(value.(scu_UC_e)), "costs_h" => sum(value.(h_costs)),
                "costs_total_reserve" => sum(value.(rb_costs)) + sum(value.(re_costs)) + sum(value.(rg_costs))+sum(value.(rgp_costs)),
                "hydrogenCost" => hydrogenCost,
+               "Inertia_average"=>y_Inertia,
+               "Inertia_average_energy"=>y_Inertia_energy,
+               "Inertia_x_values"=>x_Inertia,
+               "Total_Demand_Electro_storage"=>Total_Demand_Electro_storage,
+               "Wind power" => pw,
+               "Solar power" => ps,
          
                )
 
