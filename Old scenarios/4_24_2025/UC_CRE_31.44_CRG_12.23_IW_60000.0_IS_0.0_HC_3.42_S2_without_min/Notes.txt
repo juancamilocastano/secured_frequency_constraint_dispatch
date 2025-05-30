@@ -1,3 +1,0 @@
-- I am running the script ScriptUC_buffer_Binary_S2_new.
--This simulation includes the binary constraint of the electrolyzer, the reserve that nuclear power plants can provide, and tie the constraints of the reserve provided by traditional generators.
--This would be the code used in the paper for S2

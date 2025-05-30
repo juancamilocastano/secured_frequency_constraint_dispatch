@@ -423,12 +423,13 @@ Installed_W = m.ext[:parameters][:Installed_W]/Pbase
 
 
 #Extract paremeters of the system   m.ext[:parameters][:rocofmax]=data["rocofmax"]
-rocofmax = m.ext[:parameters][:rocofmax]
+FO_base = m.ext[:parameters][:FO]
+rocofmax = m.ext[:parameters][:rocofmax]/FO_base #rocofmax in PU
 HVC=ones(24,1) #Fixed hydrogen costs
 hydrogenCost=  m.ext[:parameters][:hydrogenCost]*HVC #Fixed hydrogen costs
 #hydrogenCost = m.ext[:parameters][:hydrogenCost]*1.2*HVC #Variable hydrogen costs
-FO = m.ext[:parameters][:FO]
-deltaf = m.ext[:parameters][:deltaf]
+deltaf = m.ext[:parameters][:deltaf]/FO_base
+FO = m.ext[:parameters][:FO]/FO_base
 
 # Extract parameters Generators
 CostFuel=m.ext[:parameters][:FCOST]
@@ -1219,8 +1220,10 @@ plot!(xlabel = "Time [h]",
       title = "Hourly Hydrogen mass flow electrolyzer $i")
 
 display(p_HF_11)
-end
 
+save_path = joinpath(folder_name_plot, "Hydrogen_flows_plot_$i.png")
+savefig(p_HF_11, save_path)
+end
 
 
 
