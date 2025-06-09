@@ -2,7 +2,7 @@
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "c144285bb55c44d99566649eaed15b5bc85efc64"
+project_hash = "9c3b8a520557e1ae80e85699ee5055d9d62d0dbb"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra", "Test"]
@@ -290,6 +290,12 @@ git-tree-sha1 = "8476481230247b3671a98f8b3072053bb001102a"
 uuid = "1d38b3a6-207b-531b-80e8-c83f48dafa73"
 version = "1.3.4+2"
 
+[[deps.FileIO]]
+deps = ["Pkg", "Requires", "UUIDs"]
+git-tree-sha1 = "b66970a70db13f45b7e57fbda1736e1cf72174ea"
+uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+version = "1.17.0"
+
 [[deps.FileWatching]]
 uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
 
@@ -462,6 +468,12 @@ version = "1.10.0"
 git-tree-sha1 = "a3f24677c21f5bbe9d2a714f95dcd58337fb2856"
 uuid = "82899510-4779-5014-852e-03e436cf321d"
 version = "1.0.0"
+
+[[deps.JLD2]]
+deps = ["FileIO", "MacroTools", "Mmap", "OrderedCollections", "PrecompileTools", "Requires", "TranscodingStreams"]
+git-tree-sha1 = "1059c071429b4753c0c869b75c859c44ba09a526"
+uuid = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
+version = "0.5.12"
 
 [[deps.JLFzf]]
 deps = ["Pipe", "REPL", "Random", "fzf_jll"]

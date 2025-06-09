@@ -981,7 +981,7 @@ con18=m.ext[:constraints][:con18] = @constraint(m, [i=ID,j=J],pl[j].<=0.00001+su
 con18_pump=m.ext[:constraints][:con18_pump] = @constraint(m, [i=ID_Pump,j=J],pl[j].<=0.00001+sum(re[:, j])+sum(rb[:, j])+(sum(rg[:, j])))
 
 
-#optimize!(m)
+optimize!(m)
 
 #=
 Model_1_time=@elapsed begin
@@ -1036,6 +1036,14 @@ end
 
 Model_3_time=@elapsed begin
  #Constraints nadir interval III
+ #=
+delete!(m.ext[:constraints], :con14)
+delete!(m.ext[:constraints], :con15)
+delete!(m.ext[:constraints], :con16)
+delete!(m.ext[:constraints], :con14_pump)
+delete!(m.ext[:constraints], :con16_pump)
+=#
+
 for j in J
     for i in ID
       #=
@@ -1058,6 +1066,8 @@ for j in J
       delete(m,m.ext[:constraints][:con16_pump][i,j])
     end
  end
+ 
+
  
 
 
@@ -1631,7 +1641,10 @@ results = Dict("g" => g,
                "Solar power" => ps,
                "available_head_room_per_hour" => available_head_room_per_hour,
                "y_Inertia_energy" => y_Inertia_energy,
-               "y_Inertia" => y_Inertia,         
+               "y_Inertia" => y_Inertia,
+               "cost_rg_per_hour"=> value.(rg_costs),
+               "cost_re_per_hour"=> value.(re_costs),
+               "cost_rb_per_hour"=> value.(rb_costs),         
                )
 
 open(save_path, "w") do io

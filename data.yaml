@@ -24,8 +24,8 @@ dispatchableGenerators:
   maxFrdelivarable: 36 # 
   deploymentTime: 15 # s
   reserveCosts: 12.23 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
-  upramprate: 0 # MW/h #https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8466038
-  downramprate: 0 # MW/h
+  upramprate: 1800 # MW/h #https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8466038, https://www.iaea.org/publications/11104/non-baseload-operation-in-nuclear-power-plants-load-following-and-frequency-control-modes-of-flexible-operation, https://www.sciencedirect.com/science/article/pii/S0360544218304729
+  downramprate: 1800 # MW/h
   Emax: 0  # MWh 
   DODmax: 0 # corresponds to considering that the energy of the reservoir includes the minimun volume of the reservoir and that the power plant needs 650 Mwh to keep providing reserve during 15 minutes
   effc: 0 # Charge Efficiency
