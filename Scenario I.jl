@@ -42,9 +42,10 @@ using Gurobi
 
 m = Model(optimizer_with_attributes(Gurobi.Optimizer))
 #https://www.sciencedirect.com/science/article/pii/S0378779624005649 according to this paper, the tolerant gap is between 0.1% and 0.01%
-set_optimizer_attribute(m, "MIPGap", 0.001) 
+set_optimizer_attribute(m, "MIPGap", 0.00015) 
 #set_optimizer_attribute(m, "TimeLimit", 3600)  # 1 hour
 set_optimizer_attribute(m, "Threads", 20)       # Use 8 threads
+
    
 
 function define_sets!(m::Model, data::Dict, ts::DataFrame)
@@ -908,8 +909,8 @@ con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j+1]==I
 con13=m.ext[:constraints][:con13] = @constraint(m, [i=ID_E,j=J[1:end-1]],hss[i,j+1]==hss[i,j]+hfe[i,j]-hfgdinyec[i,j]/heffc[i]+hfgdcon[i,j]*heffd[i]-Eload_factor[i]*PEmax[i]/(Eeff[i]))
 
 #Bounds electrolyzer considering standby
-con13_1=m.ext[:constraints][:con13_1] = @constraint(m, [i=ID_E,j=J],pe[i,j].<=PEmax[i]*ze[i,j]+0.05*PEmax[i]*zestb[i,j])
 con13_2=m.ext[:constraints][:con13_2] = @constraint(m, [i=ID_E,j=J],pe[i,j].>=PEmin[i]*ze[i,j]+0.05*PEmax[i]*zestb[i,j])
+con13_1=m.ext[:constraints][:con13_1] = @constraint(m, [i=ID_E,j=J],pe[i,j].<=PEmax[i]*ze[i,j]+0.05*PEmax[i]*zestb[i,j])
 
 #Bounds electrolyzer without considering standby
 #con13_1=m.ext[:constraints][:con13_1] = @constraint(m, [i=ID_E,j=J],pe[i,j].<=PEmax[i]*ze[i,j])
@@ -1324,18 +1325,17 @@ number_hours=nrow(ts)
 
 
 
-pr=bar(1:number_hours, [sum_reserve_g sum_reserve_b sum_reserve_e],
-    bar_width = 0.8,           # Ancho de las barras
-    label = ["Reserve Generators" "Reserve BESS" "Reserve Electrolyzer"],  # Etiquetas para la leyenda
+pr = groupedbar(1:number_hours, [sum_reserve_g sum_reserve_b sum_reserve_e],
+    bar_width = 0.8,           # Width of the bars
+    label = ["Reserve Generators" "Reserve BESS" "Reserve Electrolyzer"],  # Labels for the legend
     fillcolor = [:red :green :blue],
     title = "Hourly Procured reserve",
-    xlabel = "Time [h]",       # Etiqueta del eje X
+    xlabel = "Time [h]",       # Label of the X-axis
     ylabel = "Procured Reserve [MW]",
-    alpha = 0.5,               # Transparencia de las barras
+    alpha = 0.5,               # Transparency of the bars
     layout = (1, 1),
-   legend = :outerright
-    )           # Disposición del gráfico
-
+    legend = :outerright
+)
 
 plot!(pr, 1:number_hours, plvec,
     label = "Loss of power",
@@ -1344,10 +1344,10 @@ plot!(pr, 1:number_hours, plvec,
     linestyle = :solid)
 
 plot!(pr, 1:number_hours, total_reserve,
-label = "Total reserve",
-linewidth = 2,
-color = :red,
-linestyle = :dash)
+    label = "Total reserve",
+    linewidth = 2,
+    color = :red,
+    linestyle = :dash)
 
 display(pr)
 save_path = joinpath(folder_name_plot, "reserves_plot.png")
@@ -1355,33 +1355,33 @@ savefig(pr, save_path)
 
 
 
-
-p_bat = plot(pbcvec[1,:], 
+for i in 1:40
+ p_bat_11 = plot(pbcvec[i,:], 
      legend = :outerright,
      linewidth = 2,
      color = :blue,           # Changed from purple to blue for clarity
-     title = "Power and Energy of the BESS", 
+     title = "Power and Energy of the BESS $i", 
      xlabel = "Time [H]", 
      ylabel = "Power [MW], Energy [MWh]", 
      label = "Charging power")
 
-plot!(ebvec[1,:],
+plot!(ebvec[i,:],
       linewidth = 2,
       color = :red,         # Changed from red to orange for better contrast
       label = "Battery energy" # Fixed typo in "energyr"
 )
 
 # Add pbdvec[1,:] to the same plot
-plot!(pbdvec[1,:], 
+plot!(pbdvec[i,:], 
       linewidth = 2,
       color = :orange,      # Changed from green to darkgreen for distinction
       label = "Discharging power")
 
 # Display the combined plot
-display(p_bat)
 
-save_path = joinpath(folder_name_plot, "BESS_power_energy_plot.png")
-savefig(p_bat, save_path)
+save_path = joinpath(folder_name_plot, "BESS_power_energy_plot_$i.png")
+savefig(p_bat_11, save_path)
+end
 
 
 
@@ -1618,7 +1618,8 @@ for i in keys_generators_on
    end
 end
 
-available_head_room_per_hour=sum(head_room.data, dims=1)
+operational_costs=objective_value(m)
+set_gap=get_optimizer_attribute(m, "MIPGap")
 
 
 results = Dict("g" => g,
@@ -1639,12 +1640,13 @@ results = Dict("g" => g,
                "Total_Demand_Electro_storage"=>Total_Demand_Electro_storage,
                "Wind power" => pw,
                "Solar power" => ps,
-               "available_head_room_per_hour" => available_head_room_per_hour,
                "y_Inertia_energy" => y_Inertia_energy,
                "y_Inertia" => y_Inertia,
                "cost_rg_per_hour"=> value.(rg_costs),
                "cost_re_per_hour"=> value.(re_costs),
-               "cost_rb_per_hour"=> value.(rb_costs),         
+               "cost_rb_per_hour"=> value.(rb_costs),
+               "operational_costs"=> operational_costs,   
+               "set_gap"=> set_gap,	      
                )
 
 open(save_path, "w") do io

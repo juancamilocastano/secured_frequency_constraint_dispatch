@@ -1037,7 +1037,7 @@ zpcommitvaluesfix=value.(m.ext[:variables][:zpcommit])
    zp = m2.ext[:variables][:zp] = @variable(m2, [i=ID_Pump,j=J],lower_bound=0, base_name="z") #Auxiliary variable rotate second order cone
    rg = m2.ext[:variables][:rg] = @variable(m2, [i=ID,j=J],lower_bound=0, base_name="rg") #Reserve provided by generators
    rb = m2.ext[:variables][:rb] = @variable(m2, [i=ID_BESS,j=J],lower_bound=0, base_name="rb") #Reserve provided by batteries
-   re = m2.ext[:variables][:re] = @variable(m2, [i=ID_E,j=J],lower_bound=0, base_name="re") #REserve provided by electrolyzers
+   re = m2.ext[:variables][:re] = @variable(m2, [i=ID_E,j=J],lower_bound=0,upper_bound=0, base_name="re") #REserve provided by electrolyzers
    pl = m2.ext[:variables][:pl] = @variable(m2, [j=J],lower_bound=0,base_name="pl") #loss of generation
    RCU = m2.ext[:variables][:RCU] = @variable(m2, [j=J],lower_bound=0, base_name="RCU") #Renewable curtailment
    pbc = m2.ext[:variables][:pbc] = @variable(m2, [i=ID_BESS,j=J],lower_bound=0, base_name="pbc") #Charging power of the batteries
@@ -1131,7 +1131,7 @@ zpcommitvaluesfix=value.(m.ext[:variables][:zpcommit])
 
    #Constraignt upper bound reserve generators
    con1_2=m2.ext[:constraints][:con1_2] = @constraint(m2, [i=ID,j=J],
-   rg[i,j].<=maxFrdelivarable[i]*zuc[i,j]
+   rg[i,j]==maxFrdelivarable[i]*zuc[i,j]
    )
 
    #con1_2_1=m2.ext[:constraints][:con1_2_1] = @constraint(m2, [i=ID_OCGT,j=J],
@@ -1651,7 +1651,7 @@ for i in 1:40
      legend = :outerright,
      linewidth = 2,
      color = :blue,           # Changed from purple to blue for clarity
-     title = "Power and Energy of the BESS", 
+     title = "Power and Energy of the BESS $i", 
      xlabel = "Time [H]", 
      ylabel = "Power [MW], Energy [MWh]", 
      label = "Charging power")
@@ -1705,18 +1705,17 @@ number_hours=nrow(ts)
 
 
 
-pr=bar(1:number_hours, [sum_reserve_g sum_reserve_b sum_reserve_e],
-    bar_width = 0.8,           # Ancho de las barras
-    label = ["Reserve Generators" "Reserve BESS" "Reserve Electrolyzer"],  # Etiquetas para la leyenda
+pr = groupedbar(1:number_hours, [sum_reserve_g sum_reserve_b sum_reserve_e],
+    bar_width = 0.8,           # Width of the bars
+    label = ["Reserve Generators" "Reserve BESS" "Reserve Electrolyzer"],  # Labels for the legend
     fillcolor = [:red :green :blue],
     title = "Hourly Procured reserve",
-    xlabel = "Time [h]",       # Etiqueta del eje X
+    xlabel = "Time [h]",       # Label of the X-axis
     ylabel = "Procured Reserve [MW]",
-    alpha = 0.5,               # Transparencia de las barras
+    alpha = 0.5,               # Transparency of the bars
     layout = (1, 1),
-   legend = :outerright
-    )           # Disposición del gráfico
-
+    legend = :outerright
+)
 
 plot!(pr, 1:number_hours, plvec,
     label = "Loss of power",
@@ -1725,44 +1724,16 @@ plot!(pr, 1:number_hours, plvec,
     linestyle = :solid)
 
 plot!(pr, 1:number_hours, total_reserve,
-label = "Total reserve",
-linewidth = 2,
-color = :red,
-linestyle = :dash)
+    label = "Total reserve",
+    linewidth = 2,
+    color = :red,
+    linestyle = :dash)
 
 display(pr)
 save_path = joinpath(folder_name_plot, "reserves_plot.png")
 savefig(pr, save_path)
 
 
-
-
-p_bat = plot(pbcvec[1,:], 
-     legend = :outerright,
-     linewidth = 2,
-     color = :blue,           # Changed from purple to blue for clarity
-     title = "Power and Energy of the BESS", 
-     xlabel = "Time [H]", 
-     ylabel = "Power [MW], Energy [MWh]", 
-     label = "Charging power")
-
-plot!(ebvec[1,:],
-      linewidth = 2,
-      color = :red,         # Changed from red to orange for better contrast
-      label = "Battery energy" # Fixed typo in "energyr"
-)
-
-# Add pbdvec[1,:] to the same plot
-plot!(pbdvec[1,:], 
-      linewidth = 2,
-      color = :orange,      # Changed from green to darkgreen for distinction
-      label = "Discharging power")
-
-# Display the combined plot
-display(p_bat)
-
-save_path = joinpath(folder_name_plot, "BESS_power_energy_plot.png")
-savefig(p_bat, save_path)
 
 
 

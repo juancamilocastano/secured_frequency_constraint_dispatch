@@ -42,7 +42,7 @@ using Gurobi
 
 m = Model(optimizer_with_attributes(Gurobi.Optimizer))
 #https://www.sciencedirect.com/science/article/pii/S0378779624005649 according to this paper, the tolerant gap is between 0.1% and 0.01%
-set_optimizer_attribute(m, "MIPGap", 0.00015) 
+set_optimizer_attribute(m, "MIPGap", 0.00012) 
 #set_optimizer_attribute(m, "TimeLimit", 3600)  # 1 hour
 set_optimizer_attribute(m, "Threads", 20)       # Use 8 threads
    
@@ -617,7 +617,7 @@ xp = m.ext[:variables][:xp] = @variable(m, [i=ID_Pump,j=J],lower_bound=0, base_n
 yp = m.ext[:variables][:yp] = @variable(m, [i=ID_Pump,j=J],lower_bound=0, base_name="y") #Auxiliary variable rotate second order cone
 zp = m.ext[:variables][:zp] = @variable(m, [i=ID_Pump,j=J],lower_bound=0, base_name="z") #Auxiliary variable rotate second order cone
 rg = m.ext[:variables][:rg] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="rg") #Reserve provided by generators
-rb = m.ext[:variables][:rb] = @variable(m, [i=ID_BESS,j=J],lower_bound=0, base_name="rb") #Reserve provided by batteries
+rb = m.ext[:variables][:rb] = @variable(m, [i=ID_BESS,j=J],lower_bound=0,upper_bound=0, base_name="rb") #Reserve provided by batteries
 re = m.ext[:variables][:re] = @variable(m, [i=ID_E,j=J],lower_bound=0, base_name="re") #REserve provided by electrolyzers
 pl = m.ext[:variables][:pl] = @variable(m, [j=J],lower_bound=0,base_name="pl") #loss of generation
 RCU = m.ext[:variables][:RCU] = @variable(m, [j=J],lower_bound=0, base_name="RCU") #Renewable curtailment
@@ -676,10 +676,10 @@ scu_UC_e=m.ext[:expressions][:scu_UC_e] = @expression(m, [i=ID_E,j=J], start_up_
 
 #Create folder to save the results
 RE_costs=res_cost_e["E_500_1"]
-RG_costs=res_cost_g["CCGT_77"]
+RG_costs=res_cost_g["CCGT_11"]
 Installed_W_F=Installed_W*Pbase
 Installed_S_F=Installed_S*Pbase
-folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_S1_Interval_3_gap_0.00015"
+folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_S1_Interval_3_gap_0.00012"
 mkdir(folder_name_plot)
 
 
@@ -963,6 +963,7 @@ con18=m.ext[:constraints][:con18] = @constraint(m, [i=ID,j=J],pl[j].<=0.00001+su
 con18_pump=m.ext[:constraints][:con18_pump] = @constraint(m, [i=ID_Pump,j=J],pl[j].<=0.00001+sum(re[:, j])+sum(rb[:, j])+(sum(rg[:, j])))
 
 
+
 optimize!(m)
 
 
@@ -1197,18 +1198,17 @@ number_hours=nrow(ts)
 
 
 
-pr=bar(1:number_hours, [sum_reserve_g sum_reserve_b sum_reserve_e],
-    bar_width = 0.8,           # Ancho de las barras
-    label = ["Reserve Generators" "Reserve BESS" "Reserve Electrolyzer"],  # Etiquetas para la leyenda
+pr = groupedbar(1:number_hours, [sum_reserve_g sum_reserve_b sum_reserve_e],
+    bar_width = 0.8,           # Width of the bars
+    label = ["Reserve Generators" "Reserve BESS" "Reserve Electrolyzer"],  # Labels for the legend
     fillcolor = [:red :green :blue],
     title = "Hourly Procured reserve",
-    xlabel = "Time [h]",       # Etiqueta del eje X
+    xlabel = "Time [h]",       # Label of the X-axis
     ylabel = "Procured Reserve [MW]",
-    alpha = 0.5,               # Transparencia de las barras
+    alpha = 0.5,               # Transparency of the bars
     layout = (1, 1),
-   legend = :outerright
-    )           # Disposición del gráfico
-
+    legend = :outerright
+)
 
 plot!(pr, 1:number_hours, plvec,
     label = "Loss of power",
@@ -1217,10 +1217,10 @@ plot!(pr, 1:number_hours, plvec,
     linestyle = :solid)
 
 plot!(pr, 1:number_hours, total_reserve,
-label = "Total reserve",
-linewidth = 2,
-color = :red,
-linestyle = :dash)
+    label = "Total reserve",
+    linewidth = 2,
+    color = :red,
+    linestyle = :dash)
 
 display(pr)
 save_path = joinpath(folder_name_plot, "reserves_plot.png")
@@ -1229,32 +1229,33 @@ savefig(pr, save_path)
 
 
 
-p_bat = plot(pbcvec[1,:], 
+for i in 1:40
+ p_bat_11 = plot(pbcvec[i,:], 
      legend = :outerright,
      linewidth = 2,
      color = :blue,           # Changed from purple to blue for clarity
-     title = "Power and Energy of the BESS", 
+     title = "Power and Energy of the BESS $i", 
      xlabel = "Time [H]", 
      ylabel = "Power [MW], Energy [MWh]", 
      label = "Charging power")
 
-plot!(ebvec[1,:],
+plot!(ebvec[i,:],
       linewidth = 2,
       color = :red,         # Changed from red to orange for better contrast
       label = "Battery energy" # Fixed typo in "energyr"
 )
 
 # Add pbdvec[1,:] to the same plot
-plot!(pbdvec[1,:], 
+plot!(pbdvec[i,:], 
       linewidth = 2,
       color = :orange,      # Changed from green to darkgreen for distinction
       label = "Discharging power")
 
 # Display the combined plot
-display(p_bat)
 
-save_path = joinpath(folder_name_plot, "BESS_power_energy_plot.png")
-savefig(p_bat, save_path)
+save_path = joinpath(folder_name_plot, "BESS_power_energy_plot_$i.png")
+savefig(p_bat_11, save_path)
+end
 
 
 
@@ -1492,6 +1493,7 @@ for i in keys_generators_on
 end
 
 operational_costs=objective_value(m)
+set_gap=get_optimizer_attribute(m, "MIPGap")
 
 
 results = Dict("g" => g,
@@ -1517,7 +1519,8 @@ results = Dict("g" => g,
                "cost_rg_per_hour"=> value.(rg_costs),
                "cost_re_per_hour"=> value.(re_costs),
                "cost_rb_per_hour"=> value.(rb_costs),
-               "operational_costs"=> operational_costs,         
+               "operational_costs"=> operational_costs,   
+               "set_gap"=> set_gap,	      
                )
 
 open(save_path, "w") do io
