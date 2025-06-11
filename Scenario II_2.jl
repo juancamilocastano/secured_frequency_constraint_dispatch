@@ -42,9 +42,10 @@ using Gurobi
 
 m = Model(optimizer_with_attributes(Gurobi.Optimizer))
 #https://www.sciencedirect.com/science/article/pii/S0378779624005649 according to this paper, the tolerant gap is between 0.1% and 0.01%
-set_optimizer_attribute(m, "MIPGap", 0.00012) 
+set_optimizer_attribute(m, "MIPGap", 0.00015) 
 #set_optimizer_attribute(m, "TimeLimit", 3600)  # 1 hour
 set_optimizer_attribute(m, "Threads", 20)       # Use 8 threads
+
    
 
 function define_sets!(m::Model, data::Dict, ts::DataFrame)
@@ -627,8 +628,8 @@ eb = m.ext[:variables][:eb] = @variable(m, [i=ID_BESS,j=J], lower_bound= EBmax[i
 zb = m.ext[:variables][:zb] = @variable(m, [i=ID_BESS,j=J], binary=true, base_name="on_off_b")
 
 hfe= m.ext[:variables][:hfe] = @variable(m, [i=ID_E,j=J],lower_bound=0, upper_bound= Max_h_f[i], base_name="hfe") #Hydrogen flow limit of the hydrogen produced by electrolyzers
-hfgdinyec = m.ext[:variables][:hfgdinyec] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= Max_h_f[i],base_name="hfgdinyec") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
-hfgdcon= m.ext[:variables][:hfgdcon] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= Max_h_f[i],base_name="hfgdcon") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
+hfgdinyec = m.ext[:variables][:hfgdinyec] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= 0,base_name="hfgdinyec") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
+hfgdcon= m.ext[:variables][:hfgdcon] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound= 0,base_name="hfgdcon") #Hydrogen flow limit of the hydrogen flowing trhow the hydrogen pipeline
 #zhf = m.ext[:variables][:zhf] = @variable(m, [i=ID_E,j=J], binary=true, base_name="on_off_b")
 ze = m.ext[:variables][:ze] = @variable(m, [i=ID_E,j=J], binary=true, base_name="on_off_E")
 zesu = m.ext[:variables][:zesu] = @variable(m, [i=ID_E,j=J], binary=true, base_name="on_off_E_startup")
@@ -676,10 +677,10 @@ scu_UC_e=m.ext[:expressions][:scu_UC_e] = @expression(m, [i=ID_E,j=J], start_up_
 
 #Create folder to save the results
 RE_costs=res_cost_e["E_500_1"]
-RG_costs=res_cost_g["CCGT_11"]
+RG_costs=res_cost_g["CCGT_77"]
 Installed_W_F=Installed_W*Pbase
 Installed_S_F=Installed_S*Pbase
-folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_S1_Interval_3_gap_0.00012"
+folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_S2"
 mkdir(folder_name_plot)
 
 
@@ -908,8 +909,8 @@ con12=m.ext[:constraints][:con12] = @constraint(m, [i=ID_E,j=J[1]],hss[i,j+1]==I
 con13=m.ext[:constraints][:con13] = @constraint(m, [i=ID_E,j=J[1:end-1]],hss[i,j+1]==hss[i,j]+hfe[i,j]-hfgdinyec[i,j]/heffc[i]+hfgdcon[i,j]*heffd[i]-Eload_factor[i]*PEmax[i]/(Eeff[i]))
 
 #Bounds electrolyzer considering standby
-con13_1=m.ext[:constraints][:con13_1] = @constraint(m, [i=ID_E,j=J],pe[i,j].<=PEmax[i]*ze[i,j]+0.05*PEmax[i]*zestb[i,j])
 con13_2=m.ext[:constraints][:con13_2] = @constraint(m, [i=ID_E,j=J],pe[i,j].>=PEmin[i]*ze[i,j]+0.05*PEmax[i]*zestb[i,j])
+con13_1=m.ext[:constraints][:con13_1] = @constraint(m, [i=ID_E,j=J],pe[i,j].<=PEmax[i]*ze[i,j]+0.05*PEmax[i]*zestb[i,j])
 
 #Bounds electrolyzer without considering standby
 #con13_1=m.ext[:constraints][:con13_1] = @constraint(m, [i=ID_E,j=J],pe[i,j].<=PEmax[i]*ze[i,j])
@@ -937,22 +938,40 @@ con13_8=m.ext[:constraints][:con13_8] = @constraint(m, [i=ID_E,j=J],pe_c[i,j]==c
 
 
 #Constraint maximum frequency variation
-#Constraints frequency nadir as rotate second order cone
- con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
- con14_2=m.ext[:constraints][:con14_2] = @constraint(m,[i=ID,j=J],z[i,j] ==(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg)
- con14_3=m.ext[:constraints][:con14_3] = @constraint(m,[i=ID,j=J],[y[i,j]; z[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
+con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg)).>=pl[j]^2/(4*deltaf))
+con14_pump= m.ext[:constraints][:con14_pump] = @constraint(m, [i=ID_Pump,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j]))/Dtg)).>=pl[j]^2/(4*deltaf))
 
 
- con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=1],yp[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
- con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=1],zp[i,j] ==(sum(rg[:, j])+sum(rgp[:,j])-rgp[i, j])/Dtg)
- con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=1],[yp[i,j]; zp[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
+
+
+ #con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf)
+ #con14_2=m.ext[:constraints][:con14_2] = @constraint(m,[i=ID,j=J],z[i,j] ==(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO*(sum(re[:, j])/Dte+sum(rb[:, j])/Dtb+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg))
+ #con14_3=m.ext[:constraints][:con14_3] = @constraint(m,[i=ID,j=J],[y[i,j]; z[i,j]; pl[j]] in RotatedSecondOrderCone())
+
+ 
+#con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=1],yp[i,j] ==2*deltaf)
+#con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=1],zp[i,j] == (sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])/FO*(sum(re[:, j])/Dte+sum(rb[:, j])/Dtb+sum(rg[:, j])/Dtg))
+#con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=1],[yp[i,j]; zp[i,j]; pl[j]] in RotatedSecondOrderCone())
+
+
+#con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*pl[j])
+#con14_2=m.ext[:constraints][:con14_2] = @constraint(m,[i=ID,j=J],z[i,j] ==(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])*4*deltaf/FO*(sum(re[:, j])/Dte+sum(rb[:, j])/Dtb+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg)-1)
+#con14_3=m.ext[:constraints][:con14_3] = @constraint(m,[i=ID,j=J],[(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])*4*deltaf/FO*(sum(re[:, j])/Dte+sum(rb[:, j])/Dtb+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg)+1; z[i,j]; y[i,j]] in SecondOrderCone())
+
+
+
+ 
+#con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=1],yp[i,j] ==2*pl[j])
+#con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=1],zp[i,j] == (sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])*4*deltaf/FO*(sum(re[:, j])/Dte+sum(rb[:, j])/Dtb+sum(rg[:, j])/Dtg)-1)
+#con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=1],[(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])*4*deltaf/FO*(sum(re[:, j])/Dte+sum(rb[:, j])/Dtb+sum(rg[:, j])/Dtg)+1; yp[i,j]; zp[i,j]] in SecondOrderCone())
 
 #constraints nadir occurrence time
- con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])*Dtb/Dtg)
- con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<=0.000001 + sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j]))
 
-con15_pump= m.ext[:constraints][:con15_pump] = @constraint(m, [i=ID_Pump,j=J],pl[j].>=sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])+sum(rgp[:,j])-rgp[i,j])*Dtb/Dtg)
-con16_pump=m.ext[:constraints][:con16_pump] = @constraint(m, [i=ID_Pump,j=J],pl[j].<=0.000001 + sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])+sum(rgp[:,j])-rgp[i,j]))
+con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=0)
+
+con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<= 0.00001+sum(re[:, j])+sum(rb[:,j])*(Dte/Dtb)+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])*Dte/Dtg)
+con16_pump=m.ext[:constraints][:con16_pump] = @constraint(m, [i=ID_Pump,j=J],pl[j].<= 0.00001+sum(re[:, j])+sum(rb[:,j])*(Dte/Dtb)+(sum(rg[:, j]))*Dte/Dtg)
+
 #constraint ROCOF
 
 con17=m.ext[:constraints][:con17] = @constraint(m, [i=ID,j=J], pl[j]*FO/2 .<=rocofmax*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]))
@@ -963,9 +982,118 @@ con18=m.ext[:constraints][:con18] = @constraint(m, [i=ID,j=J],pl[j].<=0.00001+su
 con18_pump=m.ext[:constraints][:con18_pump] = @constraint(m, [i=ID_Pump,j=J],pl[j].<=0.00001+sum(re[:, j])+sum(rb[:, j])+(sum(rg[:, j])))
 
 
+optimize!(m)
+
+#=
+Model_1_time=@elapsed begin
+# Specify the full path for the output file
+output_file_path = joinpath(folder_name_plot, "output_1.txt")
+# Open the file with the full path and write the output
+open(output_file_path, "w") do file
+   # Redirect stdout to the file within the block
+   redirect_stdout(file) do
+      #set_optimizer_attribute(m, "Threads", 4)
+       optimize!(m)
+       opt_time = solve_time(m)
+   end
+end
+end
+=#
+
+
+
+#=
+#Constraints nadir interval II
+for j in J
+    for i in ID
+       delete(m,m.ext[:constraints][:con14][i,j])
+       delete(m,m.ext[:constraints][:con15][i,j])
+       delete(m,m.ext[:constraints][:con16][i,j])
+    end
+end
+
+
+   #Constraints frequency nadir as rotate second order cone
+   #con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO-sum(re[:,j])*Dte/(4*deltaf))*(sum(rb[:, j])/Dtb+(sum(rg[:, j])-rg[i, j])/Dtg).>=(pl[j]-sum(re[:, j]))^2/(4*deltaf))
+   
+   con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO-sum(re[:, j])*Dte/2)
+   con14_2=m.ext[:constraints][:con14_2] = @constraint(m,[i=ID,j=J],z[i,j] ==sum(re[:, j])/Dte-(sum(rg[:, j])-rg[i, j])/Dtg)
+   con14_3=m.ext[:constraints][:con14_3] = @constraint(m,[i=ID,j=J],[y[i,j]; z[i,j]; pl[j]-sum(re[:, j])] in RotatedSecondOrderCone())
+   #constraints nadir occurrence time
+   con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=sum(re[:, j])  + sum(rb[:, j])*Dte/Dtb + (sum(rg[:, j]) - rg[i, j]) * Dte / Dtg)
+   con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<=0.000000000000001 + sum(re[:, j]) + sum(rb[:, j]) + (sum(rg[:, j]) - rg[i, j]) * Dtb / Dtg)
+
+   output_file_path = joinpath(folder_name_plot, "output_2.txt")
+# Open the file with the full path and write the output
+open(output_file_path, "w") do file
+   # Redirect stdout to the file within the block
+   redirect_stdout(file) do
+       optimize!(m)
+       opt_time = solve_time(m)
+   end
+end
+ =#
+
+
+Model_3_time=@elapsed begin
+ #Constraints nadir interval III
+ #=
+delete!(m.ext[:constraints], :con14)
+delete!(m.ext[:constraints], :con15)
+delete!(m.ext[:constraints], :con16)
+delete!(m.ext[:constraints], :con14_pump)
+delete!(m.ext[:constraints], :con16_pump)
+=#
+
+for j in J
+    for i in ID
+      #=
+      #When running with 3 nadir intervals
+       delete(m,m.ext[:constraints][:con14_1][i,j])
+       delete(m,m.ext[:constraints][:con14_2][i,j])
+       delete(m,m.ext[:constraints][:con14_3][i,j]) 
+       delete(m,m.ext[:constraints][:con15][i,j])
+       delete(m,m.ext[:constraints][:con16][i,j])
+      =#
+      #when running with 2 nadir intervals
+       delete(m,m.ext[:constraints][:con14][i,j])
+       delete(m,m.ext[:constraints][:con15][i,j])
+       delete(m,m.ext[:constraints][:con16][i,j])
+      
+    end
+
+    for i in ID_Pump
+      delete(m,m.ext[:constraints][:con14_pump][i,j])
+      delete(m,m.ext[:constraints][:con16_pump][i,j])
+    end
+ end
+ 
+
+ 
+
+
+
+#Constraints frequency nadir as rotate second order cone
+ con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
+ con14_2=m.ext[:constraints][:con14_2] = @constraint(m,[i=ID,j=J],z[i,j] ==(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg)
+ con14_3=m.ext[:constraints][:con14_3] = @constraint(m,[i=ID,j=J],[y[i,j]; z[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
+
+
+
+ con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=1],yp[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
+ con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=1],zp[i,j] ==(sum(rg[:, j])+sum(rgp[:,j])-rgp[i, j])/Dtg)
+ con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=1],[yp[i,j]; zp[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
+ #constraints nadir occurrence time
+ con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])*Dtb/Dtg)
+ con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<=0.000001 + sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j]))
+
+   con15_pump= m.ext[:constraints][:con15_pump] = @constraint(m, [i=ID_Pump,j=J],pl[j].>=sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])+sum(rgp[:,j])-rgp[i,j])*Dtb/Dtg)
+   con16_pump=m.ext[:constraints][:con16_pump] = @constraint(m, [i=ID_Pump,j=J],pl[j].<=0.000001 + sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])+sum(rgp[:,j])-rgp[i,j]))
+
 
 optimize!(m)
 
+end
 
 
 
@@ -973,7 +1101,7 @@ optimize!(m)
 
 
 
-
+Post_Processing_time = @elapsed begin
 
 
 g = value.(m.ext[:variables][:g])*Pbase
@@ -1146,27 +1274,26 @@ plot!(xlabel = "Time [h]",
 display(p_HF)
 
 for i in 1:20
-   p_HF_11 = plot(hfevec[i,:], label = "hfevec", lw = 2)
-   plot!(hfgdinyecvec[i,:], label = "hfgdinyecvec", lw = 2)
-   plot!(hfgdconvec[i,:], label = "hfgdconvec", lw = 2)
-   plot!(hssvec[i,:], label = "hssvec", lw = 2)
-   plot!(HDvec[i, :], 
-   color = :red, 
-   seriestype = :scatter, 
-   markershape = :circle,
-   label = "HD")
+p_HF_11 = plot(hfevec[i,:], label = "hfevec", lw = 2)
+plot!(hfgdinyecvec[i,:], label = "hfgdinyecvec", lw = 2)
+plot!(hfgdconvec[i,:], label = "hfgdconvec", lw = 2)
+plot!(hssvec[i,:], label = "hssvec", lw = 2)
+plot!(HDvec[i, :], 
+color = :red, 
+seriestype = :scatter, 
+markershape = :circle,
+label = "HD")
 
-   plot!(xlabel = "Time [h]",
-         ylabel = "Hydrogen mass [kg] ",
-         legend = :outertopright,
-         title = "Hourly Hydrogen mass flow electrolyzer $i")
+plot!(xlabel = "Time [h]",
+      ylabel = "Hydrogen mass [kg] ",
+      legend = :outertopright,
+      title = "Hourly Hydrogen mass flow electrolyzer $i")
 
-   display(p_HF_11)
+display(p_HF_11)
 
-   save_path = joinpath(folder_name_plot, "Hydrogen_flows_plot_$i.png")
-   savefig(p_HF_11, save_path)
+save_path = joinpath(folder_name_plot, "Hydrogen_flows_plot_$i.png")
+savefig(p_HF_11, save_path)
 end
-
 
 
 
@@ -1225,7 +1352,6 @@ plot!(pr, 1:number_hours, total_reserve,
 display(pr)
 save_path = joinpath(folder_name_plot, "reserves_plot.png")
 savefig(pr, save_path)
-
 
 
 
@@ -1370,7 +1496,7 @@ display(P_D_W_S_N)
 save_path = joinpath(folder_name_plot, "Demand_renewables.png")
 savefig(P_D_W_S_N, save_path)
 
-
+end
 
 Total_Demand_Electro_storage=(D'*Pbase+sum(pevec, dims=1)+sum(pbcvec, dims=1)+sum(Ppcvector, dims=1)+sum(pe_cvec, dims=1))'
 
@@ -1529,3 +1655,4 @@ end
 
 
 
+status = termination_status(m)

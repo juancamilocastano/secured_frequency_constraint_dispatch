@@ -1,6 +1,7 @@
 [deps]
 AxisArrays = "39de3d68-74b9-583c-8d2d-e117c070f3a9"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Clustering = "aaaa29a8-35af-508c-8bc3-b662a17a0fe5"
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 PlotlyBase = "a03496cd-edff-5a9b-9e67-9cda94a718b5"
