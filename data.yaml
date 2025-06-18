@@ -23,7 +23,7 @@ dispatchableGenerators:
   innertiaCostant: 5 # s
   maxFrdelivarable: 36 # 
   deploymentTime: 15 # s
-  reserveCosts: 12.23 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
+  reserveCosts: 12.33 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
   upramprate: 1800 # MW/h #https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8466038, https://www.iaea.org/publications/11104/non-baseload-operation-in-nuclear-power-plants-load-following-and-frequency-control-modes-of-flexible-operation, https://www.sciencedirect.com/science/article/pii/S0360544218304729
   downramprate: 1800 # MW/h
   Emax: 0  # MWh 
@@ -134,7 +134,7 @@ BESS:
   Einit: 290 # MWh, starting value state of charge -> e_0
   Efinal: 290 # MWh, starting value state of charge -> e_J
   deploymentTime: 0.2 # s
-  reserveCosts: 12.23 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)
+  reserveCosts: 31.44 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)
 
 
 #total installed capacity for electrolyzers page 4->chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://assets.publishing.service.gov.uk/media/6662f36b716b14967fe341e1/hydrogen-production-delivery-roadmap-2023.pdf
@@ -152,7 +152,7 @@ Electrolyzer:
     initial_hydrogen_storage: 8275.86 # kg
     final_hydrogen_storage: 8275.86 # kg
     deploymentTime: 0.2 # s
-    reserveCosts: 12.23 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)
+    reserveCosts: 31.44 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)
     effc: 0.9 # Charge Efficiency
     effd: 0.9 # Discharge Efficiency
     startupCost:  855.5 #£ #1000  Euros taken from Electrolyzer Scheduling for Nordic FCR Services
@@ -171,7 +171,7 @@ Electrolyzer:
     initial_hydrogen_storage: 16551.72 # kg
     final_hydrogen_storage: 16551.72 # kg
     deploymentTime: 0.2 # s
-    reserveCosts: 12.23 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)W
+    reserveCosts: 31.44 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)W
     effc: 0.9 # Charge Efficiency
     effd: 0.9 # Discharge Efficiency
     startupCost:  855.5 #£ #1000  Euros
@@ -189,7 +189,7 @@ Electrolyzer:
     initial_hydrogen_storage: 41379.31 # kg
     final_hydrogen_storage: 41379.31 # kg
     deploymentTime: 0.2 # s
-    reserveCosts: 12.23 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)W
+    reserveCosts: 31.44 #£/MW,h  # (36 frequency reserve cost EUR,h/MW)W
     effc: 0.9 # Charge Efficiency
     effd: 0.9 # Discharge Efficiency
     startupCost:  855.5 #£ #1000  Euros

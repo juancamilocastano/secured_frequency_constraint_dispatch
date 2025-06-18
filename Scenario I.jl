@@ -680,7 +680,8 @@ RE_costs=res_cost_e["E_500_1"]
 RG_costs=res_cost_g["CCGT_77"]
 Installed_W_F=Installed_W*Pbase
 Installed_S_F=Installed_S*Pbase
-folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_S1"
+Costs_hydrogen=hydrogenCost[1]
+folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_HC_$(Costs_hydrogen)_S1"
 mkdir(folder_name_plot)
 
 
@@ -982,7 +983,7 @@ con18=m.ext[:constraints][:con18] = @constraint(m, [i=ID,j=J],pl[j].<=0.00001+su
 con18_pump=m.ext[:constraints][:con18_pump] = @constraint(m, [i=ID_Pump,j=J],pl[j].<=0.00001+sum(re[:, j])+sum(rb[:, j])+(sum(rg[:, j])))
 
 
-optimize!(m)
+#optimize!(m)
 
 #=
 Model_1_time=@elapsed begin
@@ -1274,10 +1275,10 @@ plot!(xlabel = "Time [h]",
 display(p_HF)
 
 for i in 1:20
-p_HF_11 = plot(hfevec[i,:], label = "hfevec", lw = 2)
-plot!(hfgdinyecvec[i,:], label = "hfgdinyecvec", lw = 2)
-plot!(hfgdconvec[i,:], label = "hfgdconvec", lw = 2)
-plot!(hssvec[i,:], label = "hssvec", lw = 2)
+p_HF_11 = plot(hfevec[i,:], label = "Electrolyzer production", lw = 2)
+plot!(hfgdinyecvec[i,:], label = "Sold hydrogen", lw = 2)
+plot!(hfgdconvec[i,:], label = "Purshaed hydrogen", lw = 2)
+plot!(hssvec[i,:], label = "Stored hydrogen", lw = 2)
 plot!(HDvec[i, :], 
 color = :red, 
 seriestype = :scatter, 
