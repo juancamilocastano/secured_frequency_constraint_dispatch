@@ -1,0 +1,3 @@
+When the hydrogen price is 3 pounds/kg, the electolyzer is turned on to flat the demand curve allowing it to procure frequency reserve.
+
+-This behaviour is different compared to scenario II due to the power consumption of the compressor

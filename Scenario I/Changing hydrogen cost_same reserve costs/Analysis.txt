@@ -1,0 +1,2 @@
+-A medida que aumenta el costo del hidrogeno la utilizacion de los electrolizadores parece aumentar
+-Con un precio de 3 libras, se encienden los electrolizadores para suplir la demanda, pero no se exporta porque el precio de comprarlo mas el precio de electrizada de los compresores lo hace no viable economicamente.

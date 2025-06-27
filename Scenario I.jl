@@ -447,6 +447,7 @@ hydrogenCost=  m.ext[:parameters][:hydrogenCost]*HVC #Fixed hydrogen costs
 #hydrogenCost = m.ext[:parameters][:hydrogenCost]*1.2*HVC #Variable hydrogen costs
 deltaf = m.ext[:parameters][:deltaf]/FO_base
 FO = m.ext[:parameters][:FO]/FO_base
+deltafreal= m.ext[:parameters][:deltaf]
 
 
 # Extract parameters Generators
@@ -638,7 +639,7 @@ zestb= m.ext[:variables][:zestb] = @variable(m, [i=ID_E,j=J], binary=true, base_
 
 
 pe = m.ext[:variables][:pe] = @variable(m,  [i=ID_E,j=J],lower_bound= 0, upper_bound=PEmax[i], base_name="pe") #Power consumption electrolyzer
-pe_c= m.ext[:variables][:pe_c] = @variable(m,  [i=ID_E,j=J], base_name="pe_c") #Power consumption of compressor electrolyzer 
+pe_c= m.ext[:variables][:pe_c] = @variable(m,  [i=ID_E,j=J],lower_bound=0, base_name="pe_c") #Power consumption of compressor electrolyzer 
 hss = m.ext[:variables][:hss] = @variable(m, [i=ID_E,j=J],lower_bound=Min_h_s[i], upper_bound= Max_h_s[i], base_name="hss") #hydrogen storage limit
 
 
@@ -681,7 +682,7 @@ RG_costs=res_cost_g["CCGT_77"]
 Installed_W_F=Installed_W*Pbase
 Installed_S_F=Installed_S*Pbase
 Costs_hydrogen=hydrogenCost[1]
-folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_HC_$(Costs_hydrogen)_S1"
+folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_HC_$(Costs_hydrogen)_delta_$(deltafreal)_S1_trilate"
 mkdir(folder_name_plot)
 
 
@@ -940,7 +941,7 @@ con13_8=m.ext[:constraints][:con13_8] = @constraint(m, [i=ID_E,j=J],pe_c[i,j]==c
 
 #Constraint maximum frequency variation
 con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg)).>=pl[j]^2/(4*deltaf))
-con14_pump= m.ext[:constraints][:con14_pump] = @constraint(m, [i=ID_Pump,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j]))/Dtg)).>=pl[j]^2/(4*deltaf))
+con14_pump= m.ext[:constraints][:con14_pump] = @constraint(m, [i=ID_Pump,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j]))/Dtg)).>=pl[j]^2/(4*deltaf))
 
 
 
@@ -950,9 +951,9 @@ con14_pump= m.ext[:constraints][:con14_pump] = @constraint(m, [i=ID_Pump,j=J],((
  #con14_3=m.ext[:constraints][:con14_3] = @constraint(m,[i=ID,j=J],[y[i,j]; z[i,j]; pl[j]] in RotatedSecondOrderCone())
 
  
-#con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=1],yp[i,j] ==2*deltaf)
-#con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=1],zp[i,j] == (sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])/FO*(sum(re[:, j])/Dte+sum(rb[:, j])/Dtb+sum(rg[:, j])/Dtg))
-#con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=1],[yp[i,j]; zp[i,j]; pl[j]] in RotatedSecondOrderCone())
+#con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=J],yp[i,j] ==2*deltaf)
+#con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=J],zp[i,j] == (sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])/FO*(sum(re[:, j])/Dte+sum(rb[:, j])/Dtb+sum(rg[:, j])/Dtg))
+#con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=J],[yp[i,j]; zp[i,j]; pl[j]] in RotatedSecondOrderCone())
 
 
 #con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*pl[j])
@@ -962,9 +963,9 @@ con14_pump= m.ext[:constraints][:con14_pump] = @constraint(m, [i=ID_Pump,j=J],((
 
 
  
-#con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=1],yp[i,j] ==2*pl[j])
-#con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=1],zp[i,j] == (sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])*4*deltaf/FO*(sum(re[:, j])/Dte+sum(rb[:, j])/Dtb+sum(rg[:, j])/Dtg)-1)
-#con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=1],[(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])*4*deltaf/FO*(sum(re[:, j])/Dte+sum(rb[:, j])/Dtb+sum(rg[:, j])/Dtg)+1; yp[i,j]; zp[i,j]] in SecondOrderCone())
+#con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=J],yp[i,j] ==2*pl[j])
+#con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=J],zp[i,j] == (sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])*4*deltaf/FO*(sum(re[:, j])/Dte+sum(rb[:, j])/Dtb+sum(rg[:, j])/Dtg)-1)
+#con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=J],[(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])*4*deltaf/FO*(sum(re[:, j])/Dte+sum(rb[:, j])/Dtb+sum(rg[:, j])/Dtg)+1; yp[i,j]; zp[i,j]] in SecondOrderCone())
 
 #constraints nadir occurrence time
 
@@ -1081,9 +1082,9 @@ for j in J
 
 
 
- con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=1],yp[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
- con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=1],zp[i,j] ==(sum(rg[:, j])+sum(rgp[:,j])-rgp[i, j])/Dtg)
- con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=1],[yp[i,j]; zp[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
+ con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=J],yp[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
+ con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=J],zp[i,j] ==(sum(rg[:, j])+sum(rgp[:,j])-rgp[i, j])/Dtg)
+ con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=J],[yp[i,j]; zp[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
  #constraints nadir occurrence time
  con15= m.ext[:constraints][:con15] = @constraint(m, [i=ID,j=J],pl[j].>=sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])*Dtb/Dtg)
  con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<=0.000001 + sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j]))
@@ -1091,10 +1092,9 @@ for j in J
    con15_pump= m.ext[:constraints][:con15_pump] = @constraint(m, [i=ID_Pump,j=J],pl[j].>=sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])+sum(rgp[:,j])-rgp[i,j])*Dtb/Dtg)
    con16_pump=m.ext[:constraints][:con16_pump] = @constraint(m, [i=ID_Pump,j=J],pl[j].<=0.000001 + sum(rb[:,j])+sum(re[:,j])+(sum(rg[:, j])+sum(rgp[:,j])-rgp[i,j]))
 
-
+end
 optimize!(m)
 
-end
 
 
 
@@ -1102,7 +1102,6 @@ end
 
 
 
-Post_Processing_time = @elapsed begin
 
 
 g = value.(m.ext[:variables][:g])*Pbase
@@ -1176,27 +1175,54 @@ pe_cvec= [pe_c[i,j] for  i in ID_E, j in J]
 
 
 using StatsPlots
+p_pump = plot(Ppcvector[1,:], 
+     legend = :outerright,
+     linewidth = 2,
+     color = :blue,           # Changed from purple to blue for clarity
+     title = "Power and Energy of the Pump", 
+     xlabel = "Time [h]", 
+     ylabel = "Power [MW], Energy [MWh]", 
+     label = "Charging power")
 
-Net_renewable=pw+ps-RCUvec
+     plot!(Penervector[1,:],
+      linewidth = 2,
+      color = :red,         # Changed from red to orange for better contrast
+      label = "Pump energy") # Fixed typo in "energy"
+
+      plot!(Ppdvector[1,:],
+      linewidth = 2,
+      color = :orange,      # Changed from green to darkgreen for distinction
+      label = "Discharging power")
+   display(p_pump)
+save_path = joinpath(folder_name_plot, "Pump_power_energy_plot.png")
+savefig(p_pump, save_path)
+
+
+
+
+
+Net_renewable=(pw+ps-RCUvec)/1000
 save_path = joinpath(folder_name_plot, "Wind_and_curtailment.png")
-P_curtailment = plot(RCUvec, label = "RCU", lw = 2, color = :red,title = "Wind generation and renewable curtailment")
-plot!(pw, label = "Wind power", lw = 2, color = :blue)
+P_curtailment = plot(RCUvec/1000, label = "RCU", lw = 2, color = :red,title = "Wind generation and renewable curtailment",ylabel = "Power [GW]", xlabel = "Time [h]")
+plot!(pw/1000, label = "Wind power", lw = 2, color = :blue)
 savefig(P_curtailment, save_path)
 display(P_curtailment)
 
-Net_renewable=pw+ps-RCUvec
+Net_renewable=(pw+ps-RCUvec)/1000
 save_path = joinpath(folder_name_plot, "Wind_and_curtailment_2.png")
-P_curtailment_2 = plot(RCUvec, label = "RCU", lw = 2, color = :red,title = "Wind generation and renewable curtailment")
-plot!(Net_renewable, label= "Net RE", lw = 2, color = :orange)
+P_curtailment_2 = plot(RCUvec/1000, label = "RCU", lw = 2, color = :red,title = "Wind generation and renewable curtailment",xlabel = "Time [h]", ylabel = "Power [MW]")
+plot!(Net_renewable, label= "Inyected renewable", lw = 2, color = :orange)
 savefig(P_curtailment_2, save_path)
 display(P_curtailment_2)
 
-p_generators = groupedbar(transpose(gvec[:,:]),
+
+
+p_generators = groupedbar(transpose(gvec[:,:])/1000,
     bar_position = :stack,
     label = permutedims(ID),
     legend = :outertopright,
     xlabel = "Time [h]",
-    ylabel = "Power [MW]",
+    ylabel = "Power [GW]",
     title = "Generated Power of Units")
 plot(p_generators, layout = (1,2), size=(500, 500))
 
@@ -1234,7 +1260,7 @@ p_h_storage = plot(hfgdinyecvec[1,:],
      linewidth = 2,
      color = :blue,
      title = "Stored hydrogen and hydrogen storage flows", 
-     xlabel = "Time [H]", 
+     xlabel = "Time [h]", 
      ylabel = "Mass flow [Kg/h], Mass [Kg]", 
      label = "hfgdinyecvec",
      ylims = (0, maximum([maximum(hfgdinyecvec[1,:]), maximum(hssvec[1,:]), maximum(hfgdconvec[1,:])]) + 10))  # Added ylims
@@ -1275,18 +1301,18 @@ plot!(xlabel = "Time [h]",
 display(p_HF)
 
 for i in 1:20
-p_HF_11 = plot(hfevec[i,:], label = "Electrolyzer production", lw = 2)
-plot!(hfgdinyecvec[i,:], label = "Sold hydrogen", lw = 2)
-plot!(hfgdconvec[i,:], label = "Purshaed hydrogen", lw = 2)
-plot!(hssvec[i,:], label = "Stored hydrogen", lw = 2)
-plot!(HDvec[i, :], 
+p_HF_11 = plot(hfevec[i,:]/1000, label = "Electrolyzer production", lw = 2)
+plot!(hfgdinyecvec[i,:]/1000, label = "Sold hydrogen", lw = 2)
+plot!(hfgdconvec[i,:]/1000, label = "Purchased hydrogen", lw = 2)
+plot!(hssvec[i,:]/1000, label = "Stored hydrogen", lw = 2)
+plot!(HDvec[i, :]/1000, 
 color = :red, 
 seriestype = :scatter, 
 markershape = :circle,
-label = "HD")
+label = "Hydrogen demand")
 
 plot!(xlabel = "Time [h]",
-      ylabel = "Hydrogen mass [kg] ",
+      ylabel = "Hydrogen mass [t] ",
       legend = :outertopright,
       title = "Hourly Hydrogen mass flow electrolyzer $i")
 
@@ -1362,7 +1388,7 @@ for i in 1:40
      linewidth = 2,
      color = :blue,           # Changed from purple to blue for clarity
      title = "Power and Energy of the BESS $i", 
-     xlabel = "Time [H]", 
+     xlabel = "Time [h]", 
      ylabel = "Power [MW], Energy [MWh]", 
      label = "Charging power")
 
@@ -1393,7 +1419,7 @@ p_pump = plot(Ppcvector[1,:],
      linewidth = 2,
      color = :blue,           # Changed from purple to blue for clarity
      title = "Power and Energy of the Pump", 
-     xlabel = "Time [H]", 
+     xlabel = "Time [h]", 
      ylabel = "Power [MW], Energy [MWh]", 
      label = "Charging power")
 
@@ -1438,10 +1464,60 @@ savefig(p_inertia, save_path)
 
 
 Sum_Inertia_Vector_energy=Dict()
+Inertia_nadir_energy= Dict()
 
 for j in J
-   Sum_Inertia_Vector_energy[j]=sum(Inertia_Vector[i]*value.(zuc[i,j])*Pbase/1000 for i in ID)+ PInertia_Vector["Pump_1"]*value.(zpcommit["Pump_1",j])*Pbase/1000
+   Sum_Inertia_Vector_energy[j]=sum(Inertia_Vector[i]*value.(zuc[i,j])*Pbase/1000 for i in ID)+ PInertia_Vector["Pump_1"]*value.(zpcommit["Pump_1",j])*Pbase/1000 #IN GW
+   Inertia_nadir_energy[j]=sum(Inertia_Vector[i]*value.(zuc[i,j])*Pbase for i in ID)+ value.(zpcommit["Pump_1",j])*PInertia_Vector["Pump_1"]*Pbase-Inertia_Vector["Nuclear_3"]*value.(zuc["Nuclear_3",j])*Pbase #In Mw
 end
+
+tnadir_re= Dict()
+tnadir_rg= Dict()
+rocof_post_opt= Dict()
+for j in J
+    tnadir_re[j] = plvec[j]*Dte/ (sum(revec[:,j]) + sum(rbvec[:,j]))
+    tnadir_rg[j] = plvec[j]*Dtg/ (sum(rgvec[:,j]) + sum(rgpvector[:,j])+sum(revec[:,j]) + sum(rbvec[:,j]))
+    rocof_post_opt[j] = plvec[j]*FO/(2*( Inertia_nadir_energy[j]))#hz/s
+end
+
+ Deltaf_nadir_re = Dict()
+ Deltaf_nadir_rg = Dict()
+ Deltaf_nadir_rg_2 = Dict()
+  Deltaf_nadir_re_2 = Dict()
+ for j in J
+    Deltaf_nadir_re[j] = FO_base/(2*Inertia_nadir_energy[j])*((sum(revec[:,j])/(2*Dte) + sum(rbvec[:,j])/(2*Dtb))*tnadir_re[j]^2-plvec[j]*tnadir_re[j]) #hz
+    Deltaf_nadir_rg[j] = FO_base/(2*Inertia_nadir_energy[j])*((sum(rgvec[:,j])/(2*Dtg))*(tnadir_rg[j]^2)+(sum(rbvec[:,j])+sum(revec[:,j]))*(tnadir_rg[j]-Dte/2)-plvec[j]*tnadir_rg[j]) #hz   )
+    Deltaf_nadir_re_2[j] = FO_base/(4*Inertia_nadir_energy[j])*plvec[j]*(sum(revec[:,j])/Dte+sum(rbvec[:,j])/Dtb+(sum(rgvec[:,j])+sum(rgpvector[:,j]))/Dtg)^(-1)
+   Deltaf_nadir_rg_2[j] = FO_base/(4*Inertia_nadir_energy[j])*((plvec[j]-sum(revec[:,j])-sum(rbvec[:,j]))^2*Dtg/(sum(rgvec[:,j])+sum(rgpvector[:,j]))+sum(revec[:,j])*Dte+sum(rbvec[:,j])*Dtb) #hz 
+   end
+
+x_Deltaf_nadir_rg_2 = collect(keys(Deltaf_nadir_rg_2))
+y_Deltaf_nadir_rg_2 = collect(values(Deltaf_nadir_rg_2))
+
+# Create scatter plot for Deltaf_nadir_rg
+p_Deltaf_nadir_rg=scatter(x_Deltaf_nadir_rg_2, y_Deltaf_nadir_rg_2, 
+    title = "Maximum Frequency Variation at each hour",
+    xlabel = "Time[h]",
+    ylabel = "Maximum Frequency Variation [Hz]",
+    legend = false,
+    markersize = 5,
+    ylims = (0, maximum(y_Deltaf_nadir_rg_2)+0.1)
+)
+save_path = joinpath(folder_name_plot, "Deltaf_nadir_rg_plot.png")
+savefig(p_Deltaf_nadir_rg, save_path)
+
+p_rocof=scatter(collect(keys(rocof_post_opt)), collect(values(rocof_post_opt)), 
+    title = "ROCOF at each hour",
+    xlabel = "Time[h]",
+    ylabel = "ROCOF [Hz/s]",
+    legend = false,
+    markersize = 5,
+    ylims = (0, maximum(collect(values(rocof_post_opt)))+0.1),
+    color = :red
+)
+
+save_path = joinpath(folder_name_plot, "rocof_plot.png")
+savefig(p_rocof, save_path)
 
 
 
@@ -1464,28 +1540,28 @@ savefig(p_inertia_energy, save_path)
 
 
 
-P_D_W_S_N=plot(D*Pbase, 
+P_D_W_S_N=plot(D*Pbase/1000, 
       linewidth = 2,
       color = :red,
      title = "Demand, wind and solar generation", 
-     xlabel = "Time [H]", 
-     ylabel = "Power [MW]", 
+     xlabel = "Time [h]", 
+     ylabel = "Power [GW]", 
      label = "Demand")
 
-plot!(ps,
+plot!(ps/1000,
 linewidth = 2,
 color = :green,
 label = "Solar"
 )
 
 # Add pbdvec[1,:] to the same plot with a different cross style
-plot!(pw, 
+plot!(pw/1000, 
 linewidth = 2,
 color = :blue,
 label = "Wind"
 )
 
-plot!(D*Pbase-ps-pw, 
+plot!((D*Pbase-ps-pw)/1000, 
 linewidth = 2,
 color = :orange,
 label = "Net demand"
@@ -1497,32 +1573,32 @@ display(P_D_W_S_N)
 save_path = joinpath(folder_name_plot, "Demand_renewables.png")
 savefig(P_D_W_S_N, save_path)
 
-end
 
-Total_Demand_Electro_storage=(D'*Pbase+sum(pevec, dims=1)+sum(pbcvec, dims=1)+sum(Ppcvector, dims=1)+sum(pe_cvec, dims=1))'
+
+Total_Demand_Electro_storage=(D'*Pbase+sum(pevec, dims=1)+sum(pbcvec, dims=1)+sum(Ppcvector, dims=1)+sum(pe_cvec, dims=1))'/1000
 
 P_D_W_S_N_all=plot(Total_Demand_Electro_storage, 
       linewidth = 2,
       color = :red,
      title = "Demand_all, wind and solar generation", 
-     xlabel = "Time [H]", 
+     xlabel = "Time [h]", 
      ylabel = "Power [MW]", 
      label = "Demand")
 
-plot!(ps,
+plot!(ps/1000,
 linewidth = 2,
 color = :green,
 label = "Solar"
 )
 
 # Add pbdvec[1,:] to the same plot with a different cross style
-plot!(pw, 
+plot!(pw/1000, 
 linewidth = 2,
 color = :blue,
 label = "Wind"
 )
 
-plot!(Total_Demand_Electro_storage-ps-pw, 
+plot!(Total_Demand_Electro_storage-ps/1000-pw/1000, 
 linewidth = 2,
 color = :orange,
 label = "Net demand all"
@@ -1536,7 +1612,7 @@ savefig(P_D_W_S_N_all, save_path)
 
 OU_v=sum(zucvector', dims=2)
 online_units=bar(OU_v, 
-    xlabel="Hours",                     # Eje X
+    xlabel="Time [h]",                     # Eje X
     ylabel="Number of online units",    # Eje Y
     title="Online units at each hour",  # Título
     legend=false,                       # Sin leyenda
@@ -1654,6 +1730,30 @@ open(save_path, "w") do io
    JSON.print(io, results, 2)  # Pretty-print with indentation
 end
 
+pound1 = [16200.0, 16200.0, 16200.0, 16200.0, 16200.0, 16200.0, 19144.0, 28202.9, 28314.0, 29082.0, 29608.2, 26839.4, 25236.4, 23161.5, 21044.0, 20614.0, 26589.0, 25724.0, 23164.0, 22599.0, 22274.0, 16024.0, 9953.97, 9122.85]/1000
 
+pound3 = [19700.0, 19700.0, 19700.0, 19700.0, 19700.0, 19700.0, 24144.0, 33254.0, 33314.0, 34084.0, 34614.0, 31849.0, 30294.0, 28161.5, 26044.0, 25614.0, 31589.0, 30724.0, 28164.0, 27599.0, 27274.0, 21024.0, 14954.0, 14200.0]/1000
+
+
+Comparasion=plot(pound3, 
+      linewidth = 2,
+      color = :red,
+     title = "Net demand 3.42£/kg and 1 £/kg", 
+     xlabel = "Time [h]", 
+     ylabel = "Power [GW]", 
+     label = "3.42 £/kg")
+
+plot!(pound1,
+linewidth = 2,
+color = :green,
+label = "1 £/kg "
+)
+
+
+# Save the combined plot
+
+display(Comparasion)
+save_path = joinpath(folder_name_plot, "Demand_comparasion_plot.png")
+savefig(Comparasion, save_path)
 
 status = termination_status(m)

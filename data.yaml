@@ -2,8 +2,8 @@
 valueOfLostLoad: 1000 # EUR / MWh
 CO2Price: 25 # EUR / ton
 timeStepLength: 1 # hrs
-hydrogenCost: 3.42 #£/kg #(4 EUR/kg)
-deltaf: 0.8 # Hz
+hydrogenCost: 1 # 3.42£/kg #(4 EUR/kg)
+deltaf: 1 # Hz
 FO: 50 # Hz
 rocofmax: 0.8 # beteween 0.25hz/s and 2.5 hz/s https://www.sciencedirect.com/science/article/pii/S0200544220308835
 #costfcr=12.23 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
@@ -23,7 +23,7 @@ dispatchableGenerators:
   innertiaCostant: 5 # s
   maxFrdelivarable: 36 # 
   deploymentTime: 15 # s
-  reserveCosts: 12.33 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
+  reserveCosts: 12.23 #£/MW,h  # (14.3 frequency reserve cost EUR,h/MWr)
   upramprate: 1800 # MW/h #https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8466038, https://www.iaea.org/publications/11104/non-baseload-operation-in-nuclear-power-plants-load-following-and-frequency-control-modes-of-flexible-operation, https://www.sciencedirect.com/science/article/pii/S0360544218304729
   downramprate: 1800 # MW/h
   Emax: 0  # MWh 
