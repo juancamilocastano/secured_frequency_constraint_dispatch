@@ -1715,6 +1715,12 @@ end
 operational_costs=objective_value(m)
 set_gap=get_optimizer_attribute(m, "MIPGap")
 
+rg_per_hour=sum(rgvec, dims=1)
+re_per_hour=sum(revec, dims=1)
+rb_per_hour=sum(rbvec, dims=1)
+demand_real_value= D*Pbase
+Sum_power_thermal = sum(gvec, dims=1)
+Total_Demand_Electro_storage_MW=Total_Demand_Electro_storage*1000 #Convert to MW
 
 results = Dict("g" => g,
 "rg" => rg,"rgp" => rgp, "re" => re, "rb" => rb, "pl" => pl, "pbc" => pbc, "pbd" => pbd,
@@ -1751,6 +1757,13 @@ results = Dict("g" => g,
                "Sum_Inertia_Vector_energy" => Sum_Inertia_Vector_energy,
                "Inertia_nadir_energy" => Inertia_nadir_energy,
                "rocof_post_opt" => rocof_post_opt,
+               "rg_per_hour" => rg_per_hour,
+               "re_per_hour" => re_per_hour,
+               "rb_per_hour" => rb_per_hour,
+               "demand_real_value" => demand_real_value,
+               "generators_providing_reserve" => generators_providing_reserve,
+               "Total_Demand_Electro_storage_MW" => Total_Demand_Electro_storage_MW,
+               "Sum_generated_power_thermal" => Sum_power_thermal,
                )
 
 open(save_path, "w") do io
