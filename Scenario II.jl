@@ -42,7 +42,7 @@ using Gurobi
 
 m = Model(optimizer_with_attributes(Gurobi.Optimizer))
 #https://www.sciencedirect.com/science/article/pii/S0378779624005649 according to this paper, the tolerant gap is between 0.1% and 0.01%
-set_optimizer_attribute(m, "MIPGap", 0.00015) 
+xset_optimizer_attribute(m, "MIPGap", 0.0012) 
 #set_optimizer_attribute(m, "TimeLimit", 3600)  # 1 hour
 set_optimizer_attribute(m, "Threads", 20)       # Use 8 threads
 
@@ -690,14 +690,19 @@ mkdir(folder_name_plot)
 #It creates the expression of the inertia
 # Combine index sets (assuming ID and ID_Pump are disjoint)
 
+#=
 Combined_ID = vcat(collect(ID), collect(ID_Pump)) 
 Inertia_Expression=m.ext[:expressions][:Inertia_Expression] = @expression(m, [i in Combined_ID, j in J],
     i in ID ? Inertia_Vector[i] * zuc[i,j] : PInertia_Vector[i]
 )
+=#
+Inertia_Expression=m.ext[:expressions][:Inertia_Expression] = @expression(m, [i in ID, j in J],
+    Inertia_Vector[i] * zuc[i,j]
+)
 
-
-# Inertia expression without considering pump
-#Inertia_Expression=m.ext[:expressions][:Inertia_Expression] = @expression(m, [i=ID,j=J],Inertia_Vector[i]*zuc[i,j])
+Inertia_Expression_Pump=m.ext[:expressions][:Inertia_Expression_Pump] = @expression(m, [i in ID_Pump, j in J],
+    PInertia_Vector[i] * zpcommit[i,j]
+)
 
 #Create the objective function
 obj= m.ext[:objective] = @objective(m,Min, (sum(g_costs)+sum(rg_costs)+sum(rgp_costs)+sum(rb_costs)+sum(re_costs)+sum(scu_UC)+sum(h_costs)+sum(scu_UC_e)) #Objective function
@@ -941,8 +946,9 @@ con13_8=m.ext[:constraints][:con13_8] = @constraint(m, [i=ID_E,j=J],pe_c[i,j]==c
 
 
 #Constraint maximum frequency variation
-con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg)).>=pl[j]^2/(4*deltaf))
-con14_pump= m.ext[:constraints][:con14_pump] = @constraint(m, [i=ID_Pump,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j]))/Dtg)).>=pl[j]^2/(4*deltaf))
+con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(Inertia_Expression[:,j])+Inertia_Expression_Pump["Pump_1",j]-Inertia_Expression[i,j])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg)).>=pl[j]^2/(4*deltaf))
+con14_pump= m.ext[:constraints][:con14_pump] = @constraint(m, [i=ID_Pump,j=J],((sum(Inertia_Expression[:,j]))/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j]))/Dtg)).>=pl[j]^2/(4*deltaf))
+
 
 
 
@@ -976,9 +982,8 @@ con16=m.ext[:constraints][:con16] = @constraint(m, [i=ID,j=J],pl[j].<= 0.00001+s
 con16_pump=m.ext[:constraints][:con16_pump] = @constraint(m, [i=ID_Pump,j=J],pl[j].<= 0.00001+sum(re[:, j])+sum(rb[:,j])*(Dte/Dtb)+(sum(rg[:, j]))*Dte/Dtg)
 
 #constraint ROCOF
-
-con17=m.ext[:constraints][:con17] = @constraint(m, [i=ID,j=J], pl[j]*FO/2 .<=rocofmax*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]))
-con17_pump=m.ext[:constraints][:con17_pump] = @constraint(m, [i=ID_Pump,j=J], pl[j]*FO/2 .<=rocofmax*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]))
+con17=m.ext[:constraints][:con17] = @constraint(m, [i=ID,j=J], pl[j]*FO/2 .<=rocofmax*(sum(Inertia_Expression[:,j])+Inertia_Expression_Pump["Pump_1",j]-Inertia_Expression[i,j]))
+con17_pump=m.ext[:constraints][:con17_pump] = @constraint(m, [i=ID_Pump,j=J], pl[j]*FO/2 .<=rocofmax*(sum(Inertia_Expression[:,j])))
 
 #QSS frequency constraint
 con18=m.ext[:constraints][:con18] = @constraint(m, [i=ID,j=J],pl[j].<=0.00001+sum(re[:, j])+sum(rb[:, j])+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j]))
@@ -1077,13 +1082,13 @@ for j in J
 
 
 #Constraints frequency nadir as rotate second order cone
- con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
+ con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]+Inertia_Expression_Pump["Pump_1",j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
  con14_2=m.ext[:constraints][:con14_2] = @constraint(m,[i=ID,j=J],z[i,j] ==(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg)
  con14_3=m.ext[:constraints][:con14_3] = @constraint(m,[i=ID,j=J],[y[i,j]; z[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
 
 
 
- con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=J],yp[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
+  con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=J],yp[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j]))/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
  con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=J],zp[i,j] ==(sum(rg[:, j])+sum(rgp[:,j])-rgp[i, j])/Dtg)
  con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=J],[yp[i,j]; zp[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
  #constraints nadir occurrence time
@@ -1443,13 +1448,14 @@ for j in J
    Inertia_nadir_energy[j]=sum(Inertia_Vector[i]*value.(zuc[i,j])*Pbase for i in ID)+ value.(zpcommit["Pump_1",j])*PInertia_Vector["Pump_1"]*Pbase-Inertia_Vector["Nuclear_3"]*value.(zuc["Nuclear_3",j])*Pbase #In Mw
 end
 
+
 tnadir_re= Dict()
 tnadir_rg= Dict()
 rocof_post_opt= Dict()
 for j in J
     tnadir_re[j] = plvec[j]*Dte/ (sum(revec[:,j]) + sum(rbvec[:,j]))
     tnadir_rg[j] = plvec[j]*Dtg/ (sum(rgvec[:,j]) + sum(rgpvector[:,j])+sum(revec[:,j]) + sum(rbvec[:,j]))
-    rocof_post_opt[j] = plvec[j]*FO/(2*( Inertia_nadir_energy[j]))#hz/s
+    rocof_post_opt[j] = plvec[j]*FO_base/(2*( Inertia_nadir_energy[j]))#hz/s
 end
 
  Deltaf_nadir_re = Dict()
@@ -1474,7 +1480,8 @@ p_Deltaf_nadir_rg=scatter(x_Deltaf_nadir_rg_2, y_Deltaf_nadir_rg_2,
     ylabel = "Maximum Frequency Variation [Hz]",
     legend = false,
     markersize = 5,
-    ylims = (0, maximum(y_Deltaf_nadir_rg_2)+0.1)
+    ylims = (0, maximum(y_Deltaf_nadir_rg_2)+0.1),
+    color = :green
 )
 save_path = joinpath(folder_name_plot, "Deltaf_nadir_rg_plot.png")
 savefig(p_Deltaf_nadir_rg, save_path)
@@ -1582,6 +1589,39 @@ display(P_D_W_S_N_all)
 
 save_path = joinpath(folder_name_plot, "Total_Demand_renewables.png")
 savefig(P_D_W_S_N_all, save_path)
+
+
+
+Hydrogen_cost_and_others=plot(Total_Demand_Electro_storage, 
+      linewidth = 2,
+      color = :red,
+     title = "Demand, wind generation and hydrogen cost", 
+     xlabel = "Time [h]", 
+     ylabel = "Power [GW], Cost [£/kg]x10", 
+     label = "Demand")
+
+plot!(hydrogenCost*10,
+linewidth = 2,
+color = :green,
+label = "Hydrogen cost"
+)
+
+# Add pbdvec[1,:] to the same plot with a different cross style
+plot!(pw/1000, 
+linewidth = 2,
+color = :blue,
+label = "Wind"
+)
+
+plot!(Total_Demand_Electro_storage-ps/1000-pw/1000, 
+linewidth = 2,
+color = :orange,
+label = "Net demand all"
+)
+display(Hydrogen_cost_and_others)
+save_path = joinpath(folder_name_plot, "Hydrogen costs and others.png")
+savefig(Hydrogen_cost_and_others, save_path)
+
 
 OU_v=sum(zucvector', dims=2)
 online_units=bar(OU_v, 
@@ -1696,12 +1736,24 @@ results = Dict("g" => g,
                "cost_re_per_hour"=> value.(re_costs),
                "cost_rb_per_hour"=> value.(rb_costs),
                "operational_costs"=> operational_costs,   
-               "set_gap"=> set_gap,	      
+               "set_gap"=> set_gap,
+               "Deltaf_nadir_re" => Deltaf_nadir_re,
+               "Deltaf_nadir_re_2" => Deltaf_nadir_re_2,
+               "Deltaf_nadir_rg_2" => Deltaf_nadir_rg_2,	
+               "Deltaf_nadir_rg" => Deltaf_nadir_rg, 
+               "tnadir_re" => tnadir_re,
+               "tnadir_rg" => tnadir_rg,   
+               "rocof_post_opt" => rocof_post_opt,
+               "Sum_Inertia_Vector" => Sum_Inertia_Vector,
+               "Sum_Inertia_Vector_energy" => Sum_Inertia_Vector_energy,
+               "Inertia_nadir_energy" => Inertia_nadir_energy,
+               "rocof_post_opt" => rocof_post_opt,
                )
 
 open(save_path, "w") do io
    JSON.print(io, results, 2)  # Pretty-print with indentation
 end
+
 
 
 

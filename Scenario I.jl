@@ -42,7 +42,7 @@ using Gurobi
 
 m = Model(optimizer_with_attributes(Gurobi.Optimizer))
 #https://www.sciencedirect.com/science/article/pii/S0378779624005649 according to this paper, the tolerant gap is between 0.1% and 0.01%
-set_optimizer_attribute(m, "MIPGap", 0.00015) 
+set_optimizer_attribute(m, "MIPGap", 0.0003) 
 #set_optimizer_attribute(m, "TimeLimit", 3600)  # 1 hour
 set_optimizer_attribute(m, "Threads", 20)       # Use 8 threads
 
@@ -619,7 +619,7 @@ xp = m.ext[:variables][:xp] = @variable(m, [i=ID_Pump,j=J],lower_bound=0, base_n
 yp = m.ext[:variables][:yp] = @variable(m, [i=ID_Pump,j=J],lower_bound=0, base_name="y") #Auxiliary variable rotate second order cone
 zp = m.ext[:variables][:zp] = @variable(m, [i=ID_Pump,j=J],lower_bound=0, base_name="z") #Auxiliary variable rotate second order cone
 rg = m.ext[:variables][:rg] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="rg") #Reserve provided by generators
-rb = m.ext[:variables][:rb] = @variable(m, [i=ID_BESS,j=J],lower_bound=0, base_name="rb") #Reserve provided by batteries
+rb = m.ext[:variables][:rb] = @variable(m, [i=ID_BESS,j=J],lower_bound=0,upper_bound=0, base_name="rb") #Reserve provided by batteries
 re = m.ext[:variables][:re] = @variable(m, [i=ID_E,j=J],lower_bound=0, base_name="re") #REserve provided by electrolyzers
 pl = m.ext[:variables][:pl] = @variable(m, [j=J],lower_bound=0,base_name="pl") #loss of generation
 RCU = m.ext[:variables][:RCU] = @variable(m, [j=J],lower_bound=0, base_name="RCU") #Renewable curtailment
@@ -682,18 +682,26 @@ RG_costs=res_cost_g["CCGT_77"]
 Installed_W_F=Installed_W*Pbase
 Installed_S_F=Installed_S*Pbase
 Costs_hydrogen=hydrogenCost[1]
-folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_HC_$(Costs_hydrogen)_delta_$(deltafreal)_S1_trilate"
+folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_HC_$(Costs_hydrogen)_delta_$(deltafreal)_S1"
 mkdir(folder_name_plot)
 
 
 #It creates the expression of the inertia
 # Combine index sets (assuming ID and ID_Pump are disjoint)
 
+#=
 Combined_ID = vcat(collect(ID), collect(ID_Pump)) 
 Inertia_Expression=m.ext[:expressions][:Inertia_Expression] = @expression(m, [i in Combined_ID, j in J],
     i in ID ? Inertia_Vector[i] * zuc[i,j] : PInertia_Vector[i]
 )
+=#
+Inertia_Expression=m.ext[:expressions][:Inertia_Expression] = @expression(m, [i in ID, j in J],
+    Inertia_Vector[i] * zuc[i,j]
+)
 
+Inertia_Expression_Pump=m.ext[:expressions][:Inertia_Expression_Pump] = @expression(m, [i in ID_Pump, j in J],
+    PInertia_Vector[i] * zpcommit[i,j]
+)
 
 # Inertia expression without considering pump
 #Inertia_Expression=m.ext[:expressions][:Inertia_Expression] = @expression(m, [i=ID,j=J],Inertia_Vector[i]*zuc[i,j])
@@ -940,8 +948,8 @@ con13_8=m.ext[:constraints][:con13_8] = @constraint(m, [i=ID_E,j=J],pe_c[i,j]==c
 
 
 #Constraint maximum frequency variation
-con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg)).>=pl[j]^2/(4*deltaf))
-con14_pump= m.ext[:constraints][:con14_pump] = @constraint(m, [i=ID_Pump,j=J],((sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j]))/Dtg)).>=pl[j]^2/(4*deltaf))
+con14= m.ext[:constraints][:con14] = @constraint(m, [i=ID,j=J],((sum(Inertia_Expression[:,j])+Inertia_Expression_Pump["Pump_1",j]-Inertia_Expression[i,j])/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg)).>=pl[j]^2/(4*deltaf))
+con14_pump= m.ext[:constraints][:con14_pump] = @constraint(m, [i=ID_Pump,j=J],((sum(Inertia_Expression[:,j]))/FO*(sum(rb[:, j])/Dtb+sum(re[:, j])/Dte+(sum(rg[:, j]))/Dtg)).>=pl[j]^2/(4*deltaf))
 
 
 
@@ -976,8 +984,8 @@ con16_pump=m.ext[:constraints][:con16_pump] = @constraint(m, [i=ID_Pump,j=J],pl[
 
 #constraint ROCOF
 
-con17=m.ext[:constraints][:con17] = @constraint(m, [i=ID,j=J], pl[j]*FO/2 .<=rocofmax*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]))
-con17_pump=m.ext[:constraints][:con17_pump] = @constraint(m, [i=ID_Pump,j=J], pl[j]*FO/2 .<=rocofmax*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]))
+con17=m.ext[:constraints][:con17] = @constraint(m, [i=ID,j=J], pl[j]*FO/2 .<=rocofmax*(sum(Inertia_Expression[:,j])+Inertia_Expression_Pump["Pump_1",j]-Inertia_Expression[i,j]))
+con17_pump=m.ext[:constraints][:con17_pump] = @constraint(m, [i=ID_Pump,j=J], pl[j]*FO/2 .<=rocofmax*(sum(Inertia_Expression[:,j])))
 
 #QSS frequency constraint
 con18=m.ext[:constraints][:con18] = @constraint(m, [i=ID,j=J],pl[j].<=0.00001+sum(re[:, j])+sum(rb[:, j])+(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j]))
@@ -1076,13 +1084,13 @@ for j in J
 
 
 #Constraints frequency nadir as rotate second order cone
- con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
+ con14_1=m.ext[:constraints][:con14_1] = @constraint(m,[i=ID,j=J],y[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]+Inertia_Expression_Pump["Pump_1",j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
  con14_2=m.ext[:constraints][:con14_2] = @constraint(m,[i=ID,j=J],z[i,j] ==(sum(rg[:, j])+sum(rgp[:,j])-rg[i, j])/Dtg)
  con14_3=m.ext[:constraints][:con14_3] = @constraint(m,[i=ID,j=J],[y[i,j]; z[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
 
 
 
- con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=J],yp[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j])-Inertia_Expression[i,j]*zpcommit[i,j])/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
+ con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=J],yp[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j]))/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
  con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=J],zp[i,j] ==(sum(rg[:, j])+sum(rgp[:,j])-rgp[i, j])/Dtg)
  con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=J],[yp[i,j]; zp[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
  #constraints nadir occurrence time
@@ -1226,6 +1234,7 @@ p_generators = groupedbar(transpose(gvec[:,:])/1000,
     title = "Generated Power of Units")
 plot(p_generators, layout = (1,2), size=(500, 500))
 
+Sum_power_thermal = sum(gvec, dims=1)
 p_RB = groupedbar(transpose(rbvec[:,:]),
     bar_position = :stack,
     label = permutedims(Bvec),
@@ -1439,6 +1448,7 @@ savefig(p_pump, save_path)
 
 Sum_Inertia_Vector=Dict()
 
+#This is the total commited inertia without considering the loss of generation
 for j in J
    Sum_Inertia_Vector[j]=sum(Inertia_Vector[i]*value.(zuc[i,j]) for i in ID)+ PInertia_Vector["Pump_1"]*value.(zpcommit["Pump_1",j])
 end
@@ -1477,7 +1487,7 @@ rocof_post_opt= Dict()
 for j in J
     tnadir_re[j] = plvec[j]*Dte/ (sum(revec[:,j]) + sum(rbvec[:,j]))
     tnadir_rg[j] = plvec[j]*Dtg/ (sum(rgvec[:,j]) + sum(rgpvector[:,j])+sum(revec[:,j]) + sum(rbvec[:,j]))
-    rocof_post_opt[j] = plvec[j]*FO/(2*( Inertia_nadir_energy[j]))#hz/s
+    rocof_post_opt[j] = plvec[j]*FO_base/(2*( Inertia_nadir_energy[j]))#hz/s
 end
 
  Deltaf_nadir_re = Dict()
@@ -1493,6 +1503,9 @@ end
 
 x_Deltaf_nadir_rg_2 = collect(keys(Deltaf_nadir_rg_2))
 y_Deltaf_nadir_rg_2 = collect(values(Deltaf_nadir_rg_2))
+x_Deltaf_nadir_re_2 = collect(keys(Deltaf_nadir_re_2))
+y_Deltaf_nadir_re_2 = collect(values(Deltaf_nadir_re_2))
+
 
 # Create scatter plot for Deltaf_nadir_rg
 p_Deltaf_nadir_rg=scatter(x_Deltaf_nadir_rg_2, y_Deltaf_nadir_rg_2, 
@@ -1501,10 +1514,25 @@ p_Deltaf_nadir_rg=scatter(x_Deltaf_nadir_rg_2, y_Deltaf_nadir_rg_2,
     ylabel = "Maximum Frequency Variation [Hz]",
     legend = false,
     markersize = 5,
-    ylims = (0, maximum(y_Deltaf_nadir_rg_2)+0.1)
+    ylims = (0, maximum(y_Deltaf_nadir_rg_2)+0.1),
+    color = :green
 )
 save_path = joinpath(folder_name_plot, "Deltaf_nadir_rg_plot.png")
 savefig(p_Deltaf_nadir_rg, save_path)
+
+
+
+p_Deltaf_nadir_re=scatter(x_Deltaf_nadir_re_2, y_Deltaf_nadir_re_2, 
+    title = "Maximum Frequency Variation at each hour",
+    xlabel = "Time[h]",
+    ylabel = "Maximum Frequency Variation [Hz]",
+    legend = false,
+    markersize = 5,
+    ylims = (0, maximum(y_Deltaf_nadir_re_2)+0.1),
+    color = :blue
+)
+save_path = joinpath(folder_name_plot, "Deltaf_nadir_re_plot.png")
+savefig(p_Deltaf_nadir_re, save_path)
 
 p_rocof=scatter(collect(keys(rocof_post_opt)), collect(values(rocof_post_opt)), 
     title = "ROCOF at each hour",
@@ -1535,6 +1563,8 @@ p_inertia_energy=scatter(x_Inertia_energy, y_Inertia_energy,
 )
 save_path = joinpath(folder_name_plot, "inertia_plot_energy.png")
 savefig(p_inertia_energy, save_path)
+
+
 
 
 
@@ -1609,6 +1639,38 @@ display(P_D_W_S_N_all)
 
 save_path = joinpath(folder_name_plot, "Total_Demand_renewables.png")
 savefig(P_D_W_S_N_all, save_path)
+
+
+Hydrogen_cost_and_others=plot(Total_Demand_Electro_storage, 
+      linewidth = 2,
+      color = :red,
+     title = "Demand, wind generation and hydrogen cost", 
+     xlabel = "Time [h]", 
+     ylabel = "Power [GW], Cost [£/kg]x10", 
+     label = "Demand")
+
+plot!(hydrogenCost*10,
+linewidth = 2,
+color = :green,
+label = "Hydrogen cost"
+)
+
+# Add pbdvec[1,:] to the same plot with a different cross style
+plot!(pw/1000, 
+linewidth = 2,
+color = :blue,
+label = "Wind"
+)
+
+plot!(Total_Demand_Electro_storage-ps/1000-pw/1000, 
+linewidth = 2,
+color = :orange,
+label = "Net demand all"
+)
+display(Hydrogen_cost_and_others)
+save_path = joinpath(folder_name_plot, "Hydrogen costs and others.png")
+savefig(Hydrogen_cost_and_others, save_path)
+
 
 OU_v=sum(zucvector', dims=2)
 online_units=bar(OU_v, 
@@ -1698,6 +1760,12 @@ end
 operational_costs=objective_value(m)
 set_gap=get_optimizer_attribute(m, "MIPGap")
 
+rg_per_hour=sum(rgvec, dims=1)
+re_per_hour=sum(revec, dims=1)
+rb_per_hour=sum(rbvec, dims=1)
+demand_real_value= D*Pbase
+Sum_power_thermal = sum(gvec, dims=1)
+Total_Demand_Electro_storage_MW=Total_Demand_Electro_storage*1000 #Convert to MW
 
 results = Dict("g" => g,
 "rg" => rg,"rgp" => rgp, "re" => re, "rb" => rb, "pl" => pl, "pbc" => pbc, "pbd" => pbd,
@@ -1723,7 +1791,25 @@ results = Dict("g" => g,
                "cost_re_per_hour"=> value.(re_costs),
                "cost_rb_per_hour"=> value.(rb_costs),
                "operational_costs"=> operational_costs,   
-               "set_gap"=> set_gap,	      
+               "set_gap"=> set_gap,
+               "Deltaf_nadir_re" => Deltaf_nadir_re,
+               "Deltaf_nadir_re_2" => Deltaf_nadir_re_2,
+               "Deltaf_nadir_rg_2" => Deltaf_nadir_rg_2,	
+               "Deltaf_nadir_rg" => Deltaf_nadir_rg, 
+               "tnadir_re" => tnadir_re,
+               "tnadir_rg" => tnadir_rg,   
+               "rocof_post_opt" => rocof_post_opt,
+               "Sum_Inertia_Vector" => Sum_Inertia_Vector,
+               "Sum_Inertia_Vector_energy" => Sum_Inertia_Vector_energy,
+               "Inertia_nadir_energy" => Inertia_nadir_energy,
+               "rocof_post_opt" => rocof_post_opt,
+               "rg_per_hour" => rg_per_hour,
+               "re_per_hour" => re_per_hour,
+               "rb_per_hour" => rb_per_hour,
+               "demand_real_value" => demand_real_value,
+               "generators_providing_reserve" => generators_providing_reserve,
+               "Total_Demand_Electro_storage_MW" => Total_Demand_Electro_storage_MW,
+               "Sum_generated_power_thermal" => Sum_power_thermal,
                )
 
 open(save_path, "w") do io

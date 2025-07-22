@@ -1,2 +1,0 @@
-Aqui quiero ver si cuando la variacion de frecuencia es 0.9 todavia se presenta el pico de no cumplimiento de la restriccion
-a la hora 23
