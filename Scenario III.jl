@@ -42,7 +42,7 @@ using Gurobi
 
 m = Model(optimizer_with_attributes(Gurobi.Optimizer))
 #https://www.sciencedirect.com/science/article/pii/S0378779624005649 according to this paper, the tolerant gap is between 0.1% and 0.01%
-set_optimizer_attribute(m, "MIPGap", 0.0007) 
+set_optimizer_attribute(m, "MIPGap", 0.0012) 
 #set_optimizer_attribute(m, "TimeLimit", 3600)  # 1 hour
 set_optimizer_attribute(m, "Threads", 20)       # Use 8 threads
 
@@ -681,7 +681,8 @@ RG_costs=res_cost_g["CCGT_77"]
 Installed_W_F=Installed_W*Pbase
 Installed_S_F=Installed_S*Pbase
 Costs_hydrogen=hydrogenCost[1]
-folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_HC_$(Costs_hydrogen)_delta_$(deltafreal)_S3_Sin_HF"
+rocofmax_real=rocofmax*FO_base
+folder_name_plot="UC_CRE_$(RE_costs)_CRG_$(RG_costs)_IW_$(Installed_W_F)_IS_$(Installed_S_F)_HC_$(Costs_hydrogen)_delta_$(deltafreal)_S3_rocofmax_$(rocofmax_real)"
 mkdir(folder_name_plot)
 
 

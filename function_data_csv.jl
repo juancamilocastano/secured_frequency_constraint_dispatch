@@ -1,0 +1,1 @@
+df = DataFrame(jsontable(variable))
