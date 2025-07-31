@@ -42,8 +42,9 @@ using Gurobi
 
 m = Model(optimizer_with_attributes(Gurobi.Optimizer))
 #https://www.sciencedirect.com/science/article/pii/S0378779624005649 according to this paper, the tolerant gap is between 0.1% and 0.01%
-set_optimizer_attribute(m, "MIPGap", 0.0003) 
+set_optimizer_attribute(m, "MIPGap", 0.0012) 
 #set_optimizer_attribute(m, "TimeLimit", 3600)  # 1 hour
+#set_optimizer_attribute(m, "FeasibilityTol", 1e-7)
 set_optimizer_attribute(m, "Threads", 20)       # Use 8 threads
 
    
@@ -619,8 +620,8 @@ xp = m.ext[:variables][:xp] = @variable(m, [i=ID_Pump,j=J],lower_bound=0, base_n
 yp = m.ext[:variables][:yp] = @variable(m, [i=ID_Pump,j=J],lower_bound=0, base_name="y") #Auxiliary variable rotate second order cone
 zp = m.ext[:variables][:zp] = @variable(m, [i=ID_Pump,j=J],lower_bound=0, base_name="z") #Auxiliary variable rotate second order cone
 rg = m.ext[:variables][:rg] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="rg") #Reserve provided by generators
-rb = m.ext[:variables][:rb] = @variable(m, [i=ID_BESS,j=J],lower_bound=0, base_name="rb") #Reserve provided by batteries
-re = m.ext[:variables][:re] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound=0, base_name="re") #REserve provided by electrolyzers
+rb = m.ext[:variables][:rb] = @variable(m, [i=ID_BESS,j=J],lower_bound=0,base_name="rb") #Reserve provided by batteries
+re = m.ext[:variables][:re] = @variable(m, [i=ID_E,j=J],lower_bound=0, base_name="re") #REserve provided by electrolyzers
 pl = m.ext[:variables][:pl] = @variable(m, [j=J],lower_bound=0,base_name="pl") #loss of generation
 RCU = m.ext[:variables][:RCU] = @variable(m, [j=J],lower_bound=0, base_name="RCU") #Renewable curtailment
 pbc = m.ext[:variables][:pbc] = @variable(m, [i=ID_BESS,j=J],lower_bound=0, base_name="pbc") #Charging power of the batteries

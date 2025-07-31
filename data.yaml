@@ -2,7 +2,7 @@
 valueOfLostLoad: 1000 # EUR / MWh
 CO2Price: 25 # EUR / ton
 timeStepLength: 4 # hrs
-hydrogenCost:  4 # 3.42£/kg #(4 EUR/kg)
+hydrogenCost:  1 # 3.42£/kg #(4 EUR/kg)
 deltaf: 0.8 # Hz
 FO: 50 # Hz
 rocofmax: 0.5 # beteween 0.25hz/s and 2.5 hz/s https://www.sciencedirect.com/science/article/pii/S0200544220308835

@@ -1,8 +1,0 @@
--This is the base case to compare the others
-
-What I did here is that I didn't impose any value for the reserve provided by generators to compare the results when I impose the following constraints:
-
-rg=0.5 rgmax
-rg=0.75 rgmax
-rg=0.1 rgmax
-
