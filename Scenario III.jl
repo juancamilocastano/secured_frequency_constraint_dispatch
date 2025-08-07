@@ -620,7 +620,7 @@ yp = m.ext[:variables][:yp] = @variable(m, [i=ID_Pump,j=J],lower_bound=0, base_n
 zp = m.ext[:variables][:zp] = @variable(m, [i=ID_Pump,j=J],lower_bound=0, base_name="z") #Auxiliary variable rotate second order cone
 rg = m.ext[:variables][:rg] = @variable(m, [i=ID,j=J],lower_bound=0, base_name="rg") #Reserve provided by generators
 rb = m.ext[:variables][:rb] = @variable(m, [i=ID_BESS,j=J],lower_bound=0, base_name="rb") #Reserve provided by batteries
-re = m.ext[:variables][:re] = @variable(m, [i=ID_E,j=J],lower_bound=0,upper_bound=0, base_name="re") #REserve provided by electrolyzers
+re = m.ext[:variables][:re] = @variable(m, [i=ID_E,j=J],lower_bound=0, base_name="re") #REserve provided by electrolyzers
 pl = m.ext[:variables][:pl] = @variable(m, [j=J],lower_bound=0,base_name="pl") #loss of generation
 RCU = m.ext[:variables][:RCU] = @variable(m, [j=J],lower_bound=0, base_name="RCU") #Renewable curtailment
 pbc = m.ext[:variables][:pbc] = @variable(m, [i=ID_BESS,j=J],lower_bound=0, base_name="pbc") #Charging power of the batteries
