@@ -1,0 +1,2 @@
+delta_f(hz),rocof_(hz/s),f_nom(hz),deployment_time_generators(s),deployment_time_electrolyzer(s),deployment_time_BESS(s),hydrogen_cost(eur/kg)
+0.8,0.8,50,15,0.2,0.2,4
