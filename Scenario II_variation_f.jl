@@ -1089,7 +1089,7 @@ for j in J
 
 
 
-  con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=J],yp[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j]))/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
+con14_1_Pump=m.ext[:constraints][:con14_1_Pump] = @constraint(m,[i=ID_Pump,j=J],yp[i,j] ==2*deltaf*(sum(Inertia_Expression[:,j]))/FO-sum(re[:, j])*Dte/2-sum(rb[:, j])*Dtb/2)
  con14_2_Pump=m.ext[:constraints][:con14_2_Pump] = @constraint(m,[i=ID_Pump,j=J],zp[i,j] ==(sum(rg[:, j])+sum(rgp[:,j])-rgp[i, j])/Dtg)
  con14_3_Pump=m.ext[:constraints][:con14_3_Pump] = @constraint(m,[i=ID_Pump,j=J],[yp[i,j]; zp[i,j]; pl[j]-sum(re[:, j])-sum(rb[:,j])] in RotatedSecondOrderCone())
  #constraints nadir occurrence time
@@ -1790,6 +1790,7 @@ extra_pl=Dict()
 cumulative_g = Dict()
 running_sum_g = 0   # running total
 reserve_loss=0 
+j=J
 N_1_loss_of_Inertia=Inertia_Vector["Nuclear_3"]*value.(zuc["Nuclear_3",j])*Pbase
 Inertia_loss=N_1_loss_of_Inertia
 
@@ -1800,8 +1801,8 @@ println("*************")
 rocof_post_opt_resilience= Dict()
 
 
-j = J
-println("Procured Inertia: ",Sum_Inertia_Vector_energy[j]*1000 , " Mws")
+
+println("Procured Inertia ", Sum_Inertia_Vector_energy[j], " Gws")
 println("Inertia N-1 contingency: ", Inertia_nadir_energy[j], " Mws")
 println("RoCoF N-1 contingency: ", plvec[j]*FO_base/(2*Inertia_nadir_energy[j]), " Hz/s")
 
@@ -2075,8 +2076,7 @@ for i in ID
 
             Delta_f_electrolyzer_3[i,j] = FO_base / (4 * Initial_inertia_3[j]) * (
                 (Initial_pl_3[j]  - sum(rbvec[:,j]))^2 * Dtg / (sum(rg_ini_3[j]) + rgpvector[j]) +
-                re_3*0 * Dte +
-                sum(rbvec[:,j]) * Dtb
+                 sum(rbvec[:,j]) * Dtb
             )  # Hz
 
             println("condition 2 holds")
